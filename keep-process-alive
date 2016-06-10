@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+
+import psutil
+from plumbum import local, cli, NOHUP
+from plumbum.cmd import which
+
+
+def find_process_by_name(name):
+    for process in psutil.process_iter():
+        if process.name() == name:
+            return process
+
+
+class Application(cli.Application):
+    check_zombie_interval = cli.SwitchAttr(['--check-zombie-interval', '-i'], argtype=int, default=3)
+    arguments = cli.SwitchAttr(['--argument', '-a'], list=True, default=[])
+
+    def main(self, name):
+        process = find_process_by_name(name)
+        if not process:
+            command = which(name).strip()
+            arguments = self.arguments
+            pid = (local[command] & NOHUP(stdout='/dev/null')).pid
+            process = psutil.Process(pid)
+        else:
+            command, *arguments = process.cmdline()
+
+        while True:
+            # If the target process isn't running restart it
+            if not process.is_running():
+                pid = (local[command][arguments] & NOHUP(stdout='/dev/null')).pid
+                process = psutil.Process(pid)
+
+            # The process might already have terminated since the check above, so catch possible exception
+            try:
+                if process.status() == psutil.STATUS_ZOMBIE:
+                    process.terminate()
+            except psutil.NoSuchProcess:
+                continue
+
+            try:
+                process.wait(self.check_zombie_interval)
+            except psutil.TimeoutExpired:
+                pass
+
+
+if __name__ == '__main__':
+    Application.run()

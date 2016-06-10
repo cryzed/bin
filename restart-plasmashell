@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+from plumbum import NOHUP
+from plumbum.cmd import killall, plasmashell
+
+
+def main():
+    killall('plasmashell', retcode=None)
+    plasmashell & NOHUP(stdout='/dev/null')
+
+
+if __name__ == '__main__':
+    main()

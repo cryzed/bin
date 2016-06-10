@@ -1,0 +1,9 @@
+[Unit]
+Description=Keep DNS resolver warm
+
+[Timer]
+OnCalendar=*-*-* *:00,06,12,18,24,30,36,42,48,54:*
+Persistent=true
+
+[Install]
+WantedBy=timers.target
