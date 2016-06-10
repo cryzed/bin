@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import peewee
 from plumbum import cli
 
-MOZILLA_FIREFOX_PLACES_GLOB = '~/.mozilla/firefox/*.default/places.sqlite'
+MOZILLA_FIREFOX_PLACES_SQLITE_GLOB = '~/.mozilla/firefox/*.default/places.sqlite'
 database = peewee.SqliteDatabase(None)
 
 
@@ -24,7 +24,7 @@ class Place(peewee.Model):
 
 
 def get_firefox_domains(days):
-    candidates = glob.glob(os.path.expanduser(MOZILLA_FIREFOX_PLACES_GLOB))
+    candidates = glob.glob(os.path.expanduser(MOZILLA_FIREFOX_PLACES_SQLITE_GLOB))
     # Could not determine path to places.sqlite
     if not len(candidates) == 1:
         return

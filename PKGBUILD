@@ -13,11 +13,11 @@ source=('vpn-whitelist-domain'
         'backup-system'
         'keep-process-alive')
 md5sums=('6af39b927adc5b637962b49c8a69bebe'
-         '9a2c91e29353cf4021deda525cc495ae'
+         '9c922befa1569b99f783e0fee1a43547'
          '8f493eb0b99b1eb7e38150d2a34260fa'
          'dda106bf7b2a7ff510f734974ebbbddb'
          '4e4ad52e9b431121ba2453f73863a42d'
-         'efd21be2d1f2a0f9efc065caaec7cc1c'
+         '8dbd7084c32b274aa399fa2be3e7fca4'
          '5ac369c269602134f910be3a3610e324')
 
 package() {
