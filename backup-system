@@ -7,18 +7,21 @@ import shutil
 import sys
 from datetime import datetime
 
-from plumbum.cmd import sudo, pacman, awk, tar
+from plumbum.cmd import pacman, awk, tar, sudo
 
 BLACKLIST = (
     re.compile(re.escape('/etc/fonts')),
     re.compile(re.escape('/etc/gconf')),
     re.compile(re.escape('/etc/gtk-2.0')),
-    re.compile(r'.*\.target\.wants'),
     re.compile(re.escape('/opt')),
-    re.compile(re.escape('/usr')),
-    # re.compile(r'%s\/.*\.conda' % re.escape(os.environ['LOGNAME']))
+    re.compile(re.escape('/usr'))
 )
-OUTPUT_PATH = 'backup-%s-%s.tar.gz' % (os.uname().nodename, datetime.now().strftime('%Y-%d-%m_%H-%M'))
+OUTPUT_FILE_NAME = 'backup-%s-%s.tar.gz' % (os.uname().nodename, datetime.now().strftime('%Y-%d-%m_%H-%M'))
+EXPLICITLY_INSTALLED_PACKAGES_FILE_NAME = 'pacman-explicitly-installed-packages.txt'
+
+
+def get_explicitly_installed_packages():
+    return pacman('-Q', '--explicit')
 
 
 def get_modified_backup_files_paths():
@@ -42,17 +45,17 @@ def main():
         print('This script must be run as root!', file=sys.stderr)
         return 1
 
+    user = pwd.getpwnam(os.environ['SUDO_USER'])
+    path = os.path.join(user.pw_dir, EXPLICITLY_INSTALLED_PACKAGES_FILE_NAME)
+    with open(path, 'w') as file:
+        file.write(get_explicitly_installed_packages())
+    shutil.chown(path, user.pw_uid, user.pw_gid)
+
     paths = list(p for p in get_modified_backup_files_paths() if os.path.isfile(p) and not blacklisted(p))
     paths.extend(p for p in get_lost_files_paths() if os.path.isfile(p) and not blacklisted(p))
     paths.append('/home')
-    tar('--create', '--auto-compress', '--directory', '/', '--file', OUTPUT_PATH, *paths)
-
-    sudo_user = os.environ.get('SUDO_USER', None)
-    if not sudo_user:
-        return
-
-    user = pwd.getpwnam(sudo_user)
-    shutil.chown(OUTPUT_PATH, user.pw_uid, user.pw_gid)
+    tar('--create', '--auto-compress', '--directory', '/', '--file', OUTPUT_FILE_NAME, *paths)
+    shutil.chown(OUTPUT_FILE_NAME, user.pw_uid, user.pw_gid)
 
 
 if __name__ == '__main__':
