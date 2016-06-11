@@ -12,7 +12,7 @@ source=('vpn-whitelist-domain'
         'restart-plasmashell'
         'backup-system'
         'keep-process-alive')
-md5sums=('d1d15f27a9acfcde6b6605f7c2f4c53e'
+md5sums=('cd87849307986356a1807545ec8261d3'
          'cc2731197f60136d054c7bbe1dfc6e81'
          '8f493eb0b99b1eb7e38150d2a34260fa'
          'dda106bf7b2a7ff510f734974ebbbddb'
