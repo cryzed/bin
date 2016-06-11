@@ -12,13 +12,13 @@ source=('vpn-whitelist-domain'
         'restart-plasmashell'
         'backup-system'
         'keep-process-alive')
-md5sums=('6af39b927adc5b637962b49c8a69bebe'
-         '9c922befa1569b99f783e0fee1a43547'
+md5sums=('d1d15f27a9acfcde6b6605f7c2f4c53e'
+         'cc2731197f60136d054c7bbe1dfc6e81'
          '8f493eb0b99b1eb7e38150d2a34260fa'
          'dda106bf7b2a7ff510f734974ebbbddb'
          '4e4ad52e9b431121ba2453f73863a42d'
          '3a6a57f8e47c07979cdf64805d5d5b19'
-         '5ac369c269602134f910be3a3610e324')
+         '8deb1edf440e5d33662905024522fcf1')
 
 package() {
     usr_bin="$pkgdir/usr/bin"

@@ -65,11 +65,12 @@ def get_file_domains(file):
 
 
 class Application(cli.Application):
-    domains = cli.SwitchAttr(['--domain', '-d'], list=True)
-    paths = cli.SwitchAttr(['--file', '-f'], list=True)
+    domains = cli.SwitchAttr(['--domain', '-d'], list=True, help='Domain to resolve')
+    paths = cli.SwitchAttr(['--file', '-f'], list=True, help='Path to file containing domains to be resolved')
 
-    use_firefox = cli.Flag(['--use-firefox'], default=False)
-    days = cli.SwitchAttr(['--days', '-n'], argtype=int, default=7)
+    use_firefox = cli.Flag(['--use-firefox'], default=False, help="Use domains in Mozilla Firefox's history")
+    days = cli.SwitchAttr(['--days', '-n'], argtype=int, default=7,
+                          help='Use domains of history up to n days before the last made entry')
 
     def main(self):
         domains = set(self.domains)

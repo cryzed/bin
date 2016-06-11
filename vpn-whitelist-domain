@@ -14,7 +14,7 @@ def get_default_gateway():
 
 
 class Application(cli.Application):
-    remove = cli.Flag(['-r', '--remove'])
+    remove = cli.Flag(['-r', '--remove'], help='Remove domain from whitelist')
 
     def main(self, domain):
         default_gateway = get_default_gateway()

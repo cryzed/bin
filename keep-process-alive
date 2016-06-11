@@ -12,8 +12,10 @@ def find_process_by_name(name):
 
 
 class Application(cli.Application):
-    check_zombie_interval = cli.SwitchAttr(['--check-zombie-interval', '-i'], argtype=int, default=3)
-    arguments = cli.SwitchAttr(['--argument', '-a'], list=True, default=[])
+    check_zombie_interval = cli.SwitchAttr(['--check-zombie-interval', '-i'], argtype=int, default=3,
+                                           help='Seconds between checking if the process has become a zombie')
+    arguments = cli.SwitchAttr(['--argument', '-a'], list=True, default=[],
+                               help='Pass argument to process when (re)started')
 
     def main(self, name):
         process = find_process_by_name(name)
