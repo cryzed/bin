@@ -15,7 +15,7 @@ source=('vpn-whitelist-domain'
 md5sums=('cd87849307986356a1807545ec8261d3'
          'cc2731197f60136d054c7bbe1dfc6e81'
          '8f493eb0b99b1eb7e38150d2a34260fa'
-         'dda106bf7b2a7ff510f734974ebbbddb'
+         'cbf72293797013c3e7c1cda4dc5d7155'
          '4e4ad52e9b431121ba2453f73863a42d'
          '19c2fbe44de491ec04fa4c232f38a4bd'
          '8deb1edf440e5d33662905024522fcf1')
