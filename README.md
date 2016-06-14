@@ -100,3 +100,23 @@ server:
 `cache-min-ttl: 3600` forces caching of resolved domains to at least one hour. Due to enabling `prefetch`, Unbound will
 start resolving cached domains as soon as their remaining TTL falls below 10% -- that's why I configured the systemd
 timer unit to run every 6 minutes. In theory this should keep every specified domain cached in Unbound.
+
+
+## systemd-octor
+```
+usage: systemd-octor [-h] [--destination DESTINATION]
+                     [--compare COMPARE COMPARE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --destination DESTINATION, -d DESTINATION
+                        Change destination of output file
+  --compare COMPARE COMPARE, -c COMPARE COMPARE
+                        Compare first output to second output
+```
+
+This is used to compare the systemd service configuration between two systems. Useful for example in case some important
+units were disabled on system A and the exact changes made were forgotten. An easy way to fix the configuration then is
+to create a fresh Arch Linux installation (system B) in a `systemd-nspawn` container, or as a full virtual machine, and
+running this script to get a sane systemd service configuration which can then be compared using:
+`systemd-octor --compare A.json B.json`.
