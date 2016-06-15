@@ -17,26 +17,29 @@ def get_default_gateway():
 class Application(cli.Application):
     remove = cli.Flag(['-r', '--remove'], help='Remove domain from whitelist')
 
-    def main(self, domain):
+    def main(self, *domains):
         default_gateway = get_default_gateway()
         if not default_gateway:
             print('Error: Could not determine default gateway:' % (ip('route')), file=sys.stderr)
             print(ip('route'), file=sys.stderr)
             return 1
 
-        for address in set(i[4][0] for i in socket.getaddrinfo(domain, None)):
-            if self.remove:
-                sudo(ip['route', 'del', address, 'via', default_gateway], retcode=None)
-                print('Removed', address, 'from whitelist')
-            else:
-                sudo(ip['route', 'del', address, 'via', default_gateway], retcode=None)
-                command = sudo[ip['route', 'add', address, 'via', default_gateway, 'proto', 'static']]
-                exit_code, stdout, stderr = command.run(retcode=None)
-                if exit_code != 0:
-                    print('Failed to whitelist %s: %s' % (address, stderr.strip()), file=sys.stderr)
-                    continue
+        for domain in domains:
+            print('%s:' % domain)
+            for address in set(i[4][0] for i in socket.getaddrinfo(domain, None)):
+                if self.remove:
+                    sudo(ip['route', 'del', address, 'via', default_gateway], retcode=None)
+                    print('    Removed', address, 'from whitelist')
+                else:
+                    sudo(ip['route', 'del', address, 'via', default_gateway], retcode=None)
+                    command = sudo[ip['route', 'add', address, 'via', default_gateway, 'proto', 'static']]
+                    exit_code, stdout, stderr = command.run(retcode=None)
+                    if exit_code != 0:
+                        print('    Failed to whitelist %s: %s' % (address, stderr.strip()), file=sys.stderr)
+                        continue
 
-                print('Added', address, 'to whitelist')
+                    print('    Added', address, 'to whitelist')
+            print()
 
 
 if __name__ == '__main__':
