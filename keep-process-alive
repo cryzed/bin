@@ -5,9 +5,9 @@ from plumbum import local, cli, NOHUP
 from plumbum.cmd import which
 
 
-def find_process_by_name(name):
+def find_process_by_cmdline(cmdline):
     for process in psutil.process_iter():
-        if process.name() == name:
+        if process.cmdline() == cmdline:
             return process
 
 
@@ -18,7 +18,7 @@ class Application(cli.Application):
                                help='Pass argument to process when (re)started')
 
     def main(self, name):
-        process = find_process_by_name(name)
+        process = find_process_by_cmdline([name]) or find_process_by_cmdline([which(name).strip()])
         if not process:
             command = which(name).strip()
             arguments = self.arguments
