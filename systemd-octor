@@ -5,10 +5,9 @@ import collections
 import itertools
 import json
 import os
+import subprocess
 import sys
 import textwrap
-
-from plumbum.cmd import systemctl
 
 argument_parser = argparse.ArgumentParser()
 argument_parser.add_argument('--destination', '-d', default='list-unit-files.json',
@@ -19,26 +18,26 @@ argument_parser.add_argument('--compare', '-c', nargs=2, help='Compare first out
 def compare(a_path, b_path):
     with open(a_path) as file:
         a = json.load(file)
+
     with open(b_path) as file:
         b = json.load(file)
 
-    a_file_name = os.path.basename(a_path)
-    b_file_name = os.path.basename(b_path)
+    a_base_name = os.path.basename(a_path)
+    b_base_name = os.path.basename(b_path)
     states = set(s for s in itertools.chain(a.keys(), b.keys()))
-    for state in states:
+    for state in sorted(states):
         a_set = set(a.get(state, []))
         b_set = set(b.get(state, []))
 
-        print('Missing %s in %s:' % (state, b_file_name))
-        result = '\n'.join(sorted(a_set.difference(b_set)))
-        result = result or 'None'
-        print(textwrap.indent(result, '    - '))
-        print()
-        print('Missing %s in %s:' % (state, a_file_name))
-        result = '\n'.join(sorted(b_set.difference(a_set)))
-        result = result or 'None'
-        print(textwrap.indent(result, '    - '))
-        print()
+        print('Missing %s in %s:' % (state.upper(), b_base_name))
+        difference = a_set.difference(b_set)
+        output = textwrap.indent('\n'.join(sorted(difference or ['None'])), '    - ')
+        print(output, end='\n\n')
+
+        print('Missing %s in %s:' % (state.upper(), a_base_name))
+        difference = b_set.difference(a_set)
+        output = textwrap.indent('\n'.join(sorted(difference or ['None'])), '    - ')
+        print(output, end='\n\n\n')
 
 
 def main(arguments):
@@ -46,7 +45,7 @@ def main(arguments):
         return compare(*arguments.compare)
 
     data = collections.defaultdict(list)
-    output = systemctl('list-unit-files', '--no-pager')
+    output = subprocess.check_output(('systemctl', 'list-unit-files', '--no-pager'), universal_newlines=True)
     for line in output.splitlines()[1:-2]:
         unit, state = line.split(None, 1)
         data[state.strip()].append(unit.strip())
