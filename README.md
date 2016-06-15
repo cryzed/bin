@@ -104,12 +104,11 @@ timer unit to run every 6 minutes. In theory this should keep every specified do
 
 ## systemd-octor
 ```
-usage: systemd-octor [-h] [--destination DESTINATION]
-                     [--compare COMPARE COMPARE]
+usage: systemd-octor [-h] [--output OUTPUT] [--compare COMPARE COMPARE]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --destination DESTINATION, -d DESTINATION
+  --output OUTPUT, -o OUTPUT
                         Change destination of output file
   --compare COMPARE COMPARE, -c COMPARE COMPARE
                         Compare first output to second output
