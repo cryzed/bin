@@ -10,17 +10,15 @@ import sys
 import textwrap
 
 argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('--destination', '-d', default='list-unit-files.json',
+argument_parser.add_argument('--output', '-o', default='list-unit-files.json',
                              help='Change destination of output file')
 argument_parser.add_argument('--compare', '-c', nargs=2, help='Compare first output to second output')
 
 
 def compare(a_path, b_path):
-    with open(a_path) as file:
-        a = json.load(file)
-
-    with open(b_path) as file:
-        b = json.load(file)
+    with open(a_path) as a_file, open(b_path) as b_file:
+        a = json.load(a_file)
+        b = json.load(b_file)
 
     a_base_name = os.path.basename(a_path)
     b_base_name = os.path.basename(b_path)
@@ -28,16 +26,15 @@ def compare(a_path, b_path):
     for state in sorted(states):
         a_set = set(a.get(state, []))
         b_set = set(b.get(state, []))
+        a_b_difference = a_set.difference(b_set)
+        b_a_difference = b_set.difference(a_set)
 
         print('Missing %s in %s:' % (state.upper(), b_base_name))
-        difference = a_set.difference(b_set)
-        output = textwrap.indent('\n'.join(sorted(difference or ['None'])), '    - ')
-        print(output, end='\n\n')
-
+        output = textwrap.indent('\n'.join(sorted(a_b_difference) or ['None']), '    - ')
+        print(output)
         print('Missing %s in %s:' % (state.upper(), a_base_name))
-        difference = b_set.difference(a_set)
-        output = textwrap.indent('\n'.join(sorted(difference or ['None'])), '    - ')
-        print(output, end='\n\n\n')
+        output = textwrap.indent('\n'.join(sorted(b_a_difference) or ['None']), '    - ')
+        print(output, end='\n\n')
 
 
 def main(arguments):
@@ -46,11 +43,13 @@ def main(arguments):
 
     data = collections.defaultdict(list)
     output = subprocess.check_output(('systemctl', 'list-unit-files', '--no-pager'), universal_newlines=True)
+
+    # Skip columns and total unit file count
     for line in output.splitlines()[1:-2]:
         unit, state = line.split(None, 1)
         data[state.strip()].append(unit.strip())
 
-    with open(arguments.destination, 'w') as file:
+    with open(arguments.output, 'w') as file:
         json.dump(data, file)
 
 
