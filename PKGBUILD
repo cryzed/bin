@@ -20,7 +20,7 @@ md5sums=('cd87849307986356a1807545ec8261d3'
          '4e4ad52e9b431121ba2453f73863a42d'
          '19c2fbe44de491ec04fa4c232f38a4bd'
          '8deb1edf440e5d33662905024522fcf1'
-         '75cf57aab13ad2875975b1805578cfac')
+         'ded0003fa8968ced21072b029a1bd889')
 
 package() {
     usr_bin="$pkgdir/usr/bin"
