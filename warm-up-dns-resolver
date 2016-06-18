@@ -55,7 +55,7 @@ def get_firefox_domains(days):
     return domains
 
 
-def get_file_domains(file):
+def get_line_set(file):
     domains = set()
     for line in file:
         line = line.strip()
@@ -65,21 +65,19 @@ def get_file_domains(file):
 
 
 class Application(cli.Application):
-    domains = cli.SwitchAttr(['--domain', '-d'], list=True, help='Domain to resolve')
-    paths = cli.SwitchAttr(['--file', '-f'], list=True, help='Path to file containing domains to be resolved')
-
-    use_firefox = cli.Flag(['--use-firefox'], default=False, help="Use domains in Mozilla Firefox's history")
+    paths = cli.SwitchAttr(['--file', '-f'], list=True, help='Path to file containing domains')
+    use_firefox = cli.Flag(['--use-firefox'], help="Use domains in Mozilla Firefox's history")
     days = cli.SwitchAttr(['--days', '-n'], argtype=int, default=7,
                           help='Use domains of history up to n days before the last made entry')
 
-    def main(self):
-        domains = set(self.domains)
+    def main(self, *domains):
+        domains = set(domains)
 
         # Load all domains from path
         for path in (os.path.expanduser(p) for p in self.paths):
             if os.path.exists(path):
                 with open(path) as file:
-                    domains = domains.union(get_file_domains(file))
+                    domains = domains.union(get_line_set(file))
 
         if self.use_firefox:
             domains = domains.union(get_firefox_domains(self.days))

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import os
 import socket
 import sys
 
@@ -14,25 +14,43 @@ def get_default_gateway():
             return line.split('default via')[1].split(None, 1)[0]
 
 
+def get_line_set(file):
+    domains = set()
+    for line in file:
+        line = line.strip()
+        if line and not line.startswith('#'):
+            domains.add(line)
+    return domains
+
+
 class Application(cli.Application):
     remove = cli.Flag(['-r', '--remove'], help='Remove domain from whitelist')
+    paths = cli.SwitchAttr(['--file', '-f'], list=True, help='Path to file containing domains')
+    gateway = cli.SwitchAttr(['-g', '--gateway'], help=('Specify the gateway used to bypass the VPN. If not set, the '
+                                                        'script will attempt to determine the default gateway'))
 
     def main(self, *domains):
-        default_gateway = get_default_gateway()
-        if not default_gateway:
+        gateway = self.gateway or get_default_gateway()
+        if not gateway:
             print('Error: Could not determine default gateway:' % (ip('route')), file=sys.stderr)
             print(ip('route'), file=sys.stderr)
             return 1
+
+        domains = set(domains)
+        for path in (os.path.expanduser(p) for p in self.paths):
+            if os.path.exists(path):
+                with open(path) as file:
+                    domains = domains.union(get_line_set(file))
 
         for domain in domains:
             print('%s:' % domain)
             for address in set(i[4][0] for i in socket.getaddrinfo(domain, None)):
                 if self.remove:
-                    sudo(ip['route', 'del', address, 'via', default_gateway], retcode=None)
+                    sudo(ip['route', 'del', address, 'via', gateway], retcode=None)
                     print('    Removed', address, 'from whitelist')
                 else:
-                    sudo(ip['route', 'del', address, 'via', default_gateway], retcode=None)
-                    command = sudo[ip['route', 'add', address, 'via', default_gateway, 'proto', 'static']]
+                    sudo(ip['route', 'del', address, 'via', gateway], retcode=None)
+                    command = sudo[ip['route', 'add', address, 'via', gateway, 'proto', 'static']]
                     exit_code, stdout, stderr = command.run(retcode=None)
                     if exit_code != 0:
                         print('    Failed to whitelist %s: %s' % (address, stderr.strip()), file=sys.stderr)
