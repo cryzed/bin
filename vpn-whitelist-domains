@@ -49,7 +49,6 @@ class Application(cli.Application):
                     sudo(ip['route', 'del', address, 'via', gateway], retcode=None)
                     print('    Removed', address, 'from whitelist')
                 else:
-                    sudo(ip['route', 'del', address, 'via', gateway], retcode=None)
                     command = sudo[ip['route', 'add', address, 'via', gateway, 'proto', 'static']]
                     exit_code, stdout, stderr = command.run(retcode=None)
                     if exit_code != 0:
