@@ -1,0 +1,9 @@
+[Unit]
+Description=Whitelist domains for the VPN
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/vpn-whitelist-domains --file /etc/vpn-whitelist-domains/domains
+
+[Install]
+WantedBy=multi-user.target

@@ -4,9 +4,13 @@ pkgrel=1
 arch=('any')
 url='https://github.com/cryzed/bin'
 license=('MIT')
-depends=('python-plumbum' 'python-peewee' 'python-psutil' 'lostfiles' 'systemd')
+depends=('python-plumbum' 'python-peewee' 'python-psutil' 'lostfiles' 'systemd'
+         'networkmanager')
+backup=("etc/vpn-whitelist-domains/domains")
 source=('vpn-whitelist-domains'
-        'vpn-whitelist-domains@.service'
+        'vpn-whitelist-domains.service'
+        'vpn-whitelist-domains.domains'
+        'vpn-whitelist-domains.networkmanager-dispatcher-preup'
         'warm-up-dns-resolver'
         'warm-up-dns-resolver.service'
         'warm-up-dns-resolver.timer'
@@ -15,7 +19,9 @@ source=('vpn-whitelist-domains'
         'keep-process-alive'
         'systemd-octor')
 md5sums=('b88c15c84ebe75a4445041f80117b2e0'
-         '049161674729f53867a66c810bf7193d'
+         '4b2c8dd0ca22c4a551f3c534737d56b1'
+         'd41d8cd98f00b204e9800998ecf8427e'
+         '7b5e625d5b9df65530e2a9ee635cf11c'
          '28c30f22e1f202f2ed4bfb2d7e981c20'
          '8f493eb0b99b1eb7e38150d2a34260fa'
          'cbf72293797013c3e7c1cda4dc5d7155'
@@ -36,7 +42,15 @@ package() {
 
     etc_systemd_system="$pkgdir/etc/systemd/system"
     mkdir -p "$etc_systemd_system"
-    cp 'vpn-whitelist-domains@.service' "$etc_systemd_system"
+    cp 'vpn-whitelist-domains.service' "$etc_systemd_system"
+
+    etc_vpn_whitelist_domains="$pkgdir/etc/vpn-whitelist-domains"
+    mkdir -p "$etc_vpn_whitelist_domains"
+    cp 'vpn-whitelist-domains.domains' "$etc_vpn_whitelist_domains/domains"
+
+    etc_networkmanager_preup="$pkgdir/etc/NetworkManager/dispatcher.d/pre-up.d"
+    mkdir -p "$etc_networkmanager_preup"
+    cp 'vpn-whitelist-domains.networkmanager-dispatcher-preup' "$etc_networkmanager_preup"
 
     etc_systemd_user="$pkgdir/etc/systemd/user"
     mkdir -p "$etc_systemd_user"
