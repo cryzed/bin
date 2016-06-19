@@ -18,7 +18,7 @@ source=('vpn-whitelist-domains'
         'backup-system'
         'keep-process-alive'
         'systemd-octor')
-md5sums=('b88c15c84ebe75a4445041f80117b2e0'
+md5sums=('e8b8c986a844142d123d5f0f3474b468'
          '4b2c8dd0ca22c4a551f3c534737d56b1'
          'd41d8cd98f00b204e9800998ecf8427e'
          '7b5e625d5b9df65530e2a9ee635cf11c'
@@ -50,7 +50,7 @@ package() {
 
     etc_networkmanager_preup="$pkgdir/etc/NetworkManager/dispatcher.d/pre-up.d"
     mkdir -p "$etc_networkmanager_preup"
-    cp 'vpn-whitelist-domains.networkmanager-dispatcher-preup' "$etc_networkmanager_preup"
+    cp 'vpn-whitelist-domains.networkmanager-dispatcher-preup' "$etc_networkmanager_preup/vpn-whitelist-domains"
 
     etc_systemd_user="$pkgdir/etc/systemd/user"
     mkdir -p "$etc_systemd_user"
