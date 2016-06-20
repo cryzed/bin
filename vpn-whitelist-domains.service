@@ -1,5 +1,6 @@
 [Unit]
 Description=Whitelist domains for the VPN
+Wants=network-online.target
 After=network-online.target
 
 [Service]
