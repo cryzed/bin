@@ -9,7 +9,7 @@ depends=('python-plumbum' 'python-peewee' 'python-psutil' 'lostfiles' 'systemd'
 backup=("etc/vpn-whitelist-domains/domains")
 source=('vpn-whitelist-domains'
         'vpn-whitelist-domains.domains'
-        'vpn-whitelist-domains.networkmanager-dispatcher-preup'
+        'vpn-whitelist-domains.networkmanager-pre-up-dispatcher'
         'warm-up-dns-resolver'
         'warm-up-dns-resolver.service'
         'warm-up-dns-resolver.timer'
@@ -44,7 +44,7 @@ package() {
 
     etc_networkmanager_preup="$pkgdir/etc/NetworkManager/dispatcher.d/pre-up.d"
     mkdir -p "$etc_networkmanager_preup"
-    cp 'vpn-whitelist-domains.networkmanager-dispatcher-preup' "$etc_networkmanager_preup/vpn-whitelist-domains"
+    cp 'vpn-whitelist-domains.networkmanager-pre-up-dispatcher' "$etc_networkmanager_preup/vpn-whitelist-domains"
 
     etc_systemd_user="$pkgdir/etc/systemd/user"
     mkdir -p "$etc_systemd_user"
