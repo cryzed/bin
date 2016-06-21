@@ -33,7 +33,7 @@ class Application(cli.Application):
     def main(self, *domains):
         gateway = self.gateway or get_default_gateway()
         if not gateway:
-            print('Error: Could not determine default gateway:' % (ip('route')), file=sys.stderr)
+            print('Error: Could not determine default gateway:', file=sys.stderr)
             print(ip('route'), file=sys.stderr)
             return 1
 

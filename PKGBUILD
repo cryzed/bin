@@ -17,7 +17,7 @@ source=('vpn-whitelist-domains'
         'backup-system'
         'keep-process-alive'
         'systemd-octor')
-md5sums=('18a9a6d79357ba2cd0515b6b449bba0f'
+md5sums=('8a3b2486266d94a5338ed936eba0d7d9'
          'd41d8cd98f00b204e9800998ecf8427e'
          'f499dcf2bb99dc6d1d937f1b8a9dc7f6'
          '28c30f22e1f202f2ed4bfb2d7e981c20'
