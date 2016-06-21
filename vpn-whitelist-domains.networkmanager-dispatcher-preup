@@ -1,3 +1,16 @@
-#!/usr/bin/env sh
+#!/usr/bin/env python
 
-systemctl start vpn-whitelist-domains
+import sys
+
+from plumbum.cmd import systemctl
+
+
+def main(interface, action):
+    if not action == 'vpn-pre-up':
+        return
+
+    systemctl('start', 'vpn-whitelist-domains')
+
+
+if __name__ == '__main__':
+    main(sys.argv[1], sys.argv[2])
