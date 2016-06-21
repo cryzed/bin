@@ -2,14 +2,16 @@
 
 import sys
 
-from plumbum.cmd import systemctl
+from plumbum import local
+
+WHITELIST_DOMAINS_PATH = '/etc/vpn-whitelist-domains/domains'
 
 
 def main(interface, action):
     if not action == 'vpn-pre-up':
         return
 
-    systemctl('start', 'vpn-whitelist-domains')
+    local['vpn-whitelist-domains']('--file', WHITELIST_DOMAINS_PATH)
 
 
 if __name__ == '__main__':
