@@ -30,10 +30,10 @@ def compare(a_path, b_path):
         b_a_difference = b_set.difference(a_set)
 
         print('Missing %s in %s:' % (state.upper(), b_base_name))
-        output = textwrap.indent('\n'.join(sorted(a_b_difference) or ['None']), '    - ')
+        output = textwrap.indent('\n'.join(sorted(a_b_difference) or ['None']), '  - ')
         print(output)
         print('Missing %s in %s:' % (state.upper(), a_base_name))
-        output = textwrap.indent('\n'.join(sorted(b_a_difference) or ['None']), '    - ')
+        output = textwrap.indent('\n'.join(sorted(b_a_difference) or ['None']), '  - ')
         print(output, end='\n\n')
 
 
