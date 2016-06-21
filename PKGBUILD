@@ -19,7 +19,7 @@ source=('vpn-whitelist-domains'
         'systemd-octor')
 md5sums=('d510768dcbde839e1a794bac42bfffce'
          'd41d8cd98f00b204e9800998ecf8427e'
-         '6b79feceae083ec2cafb69b2037b8465'
+         '4b74d89364d721d4d2c781b53e0271e0'
          '28c30f22e1f202f2ed4bfb2d7e981c20'
          '813d2195bdb9a6ba1b9c00e851a7a615'
          'cbf72293797013c3e7c1cda4dc5d7155'
