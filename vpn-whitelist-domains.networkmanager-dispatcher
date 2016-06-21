@@ -8,8 +8,10 @@ WHITELIST_DOMAINS_PATH = '/etc/vpn-whitelist-domains/domains'
 
 
 def main(interface, action):
-    if action == 'vpn-pre-up':
+    if action == 'vpn-up':
         local['vpn-whitelist-domains']('--file', WHITELIST_DOMAINS_PATH)
+    elif action == 'vpn-down':
+        local['vpn-whitelist-domains']('--file', WHITELIST_DOMAINS_PATH, '--remove')
 
 
 if __name__ == '__main__':

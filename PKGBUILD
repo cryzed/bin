@@ -9,7 +9,7 @@ depends=('python-plumbum' 'python-peewee' 'python-psutil' 'lostfiles' 'systemd'
 backup=("etc/vpn-whitelist-domains/domains")
 source=('vpn-whitelist-domains'
         'vpn-whitelist-domains.domains'
-        'vpn-whitelist-domains.networkmanager-pre-up-dispatcher'
+        'vpn-whitelist-domains.networkmanager-dispatcher'
         'warm-up-dns-resolver'
         'warm-up-dns-resolver.service'
         'warm-up-dns-resolver.timer'
@@ -17,9 +17,9 @@ source=('vpn-whitelist-domains'
         'backup-system'
         'keep-process-alive'
         'systemd-octor')
-md5sums=('d510768dcbde839e1a794bac42bfffce'
+md5sums=('18a9a6d79357ba2cd0515b6b449bba0f'
          'd41d8cd98f00b204e9800998ecf8427e'
-         '4b74d89364d721d4d2c781b53e0271e0'
+         'f499dcf2bb99dc6d1d937f1b8a9dc7f6'
          '28c30f22e1f202f2ed4bfb2d7e981c20'
          '813d2195bdb9a6ba1b9c00e851a7a615'
          'cbf72293797013c3e7c1cda4dc5d7155'
@@ -42,9 +42,9 @@ package() {
     mkdir -p "$etc_vpn_whitelist_domains"
     cp 'vpn-whitelist-domains.domains' "$etc_vpn_whitelist_domains/domains"
 
-    etc_networkmanager_preup="$pkgdir/etc/NetworkManager/dispatcher.d/pre-up.d"
-    mkdir -p "$etc_networkmanager_preup"
-    cp 'vpn-whitelist-domains.networkmanager-pre-up-dispatcher' "$etc_networkmanager_preup/vpn-whitelist-domains"
+    etc_networkmanager_dispatcher="$pkgdir/etc/NetworkManager/dispatcher.d"
+    mkdir -p "$etc_networkmanager_dispatcher"
+    cp 'vpn-whitelist-domains.networkmanager-dispatcher' "$etc_networkmanager_dispatcher/vpn-whitelist-domains"
 
     etc_systemd_user="$pkgdir/etc/systemd/user"
     mkdir -p "$etc_systemd_user"
