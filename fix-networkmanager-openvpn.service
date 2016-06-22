@@ -1,0 +1,8 @@
+[Unit]
+Description=Fix for the OpenVPN plugin for NetworkManager
+
+[Service]
+ExecStart=/usr/bin/fix-networkmanager-openvpn
+
+[Install]
+WantedBy=multi-user.target

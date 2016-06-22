@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+import systemd.journal
+from plumbum import local, FG
+
+NETWORKMANAGER_OPENVPN_IDENTIFIER = 'nm-openvpn'
+LINK_REMOTE_PREFIX = 'UDPv4 link remote: [AF_INET]'
+
+
+def main():
+    reader = systemd.journal.Reader()
+    reader.this_boot()
+    reader.add_match(SYSLOG_IDENTIFIER=NETWORKMANAGER_OPENVPN_IDENTIFIER)
+
+    prefix_length = len(LINK_REMOTE_PREFIX)
+    while True:
+        for entry in reader:
+            message = entry['MESSAGE']
+            if not message.startswith(LINK_REMOTE_PREFIX):
+                continue
+
+            address = message[prefix_length:].split(':', 1)[0]
+            local['vpn-whitelist-domains'][address] & FG
+        reader.wait()
+
+
+if __name__ == '__main__':
+    main()
