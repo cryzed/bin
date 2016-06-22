@@ -1,7 +1,9 @@
 [Unit]
 Description=Fix for the OpenVPN plugin for NetworkManager
+Before=nm-openvpn.service
 
 [Service]
+Environment="PYTHONUNBUFFERED=True"
 ExecStart=/usr/bin/fix-networkmanager-openvpn
 
 [Install]

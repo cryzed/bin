@@ -36,6 +36,7 @@ def main():
             address = message[prefix_length:].split(':', 1)[0]
             ip('route', 'add', address, 'via', gateway, retcode=None)
             print('Added', address, 'to whitelist')
+
         reader.wait()
 
 
