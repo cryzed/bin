@@ -19,7 +19,7 @@ source=('vpn-whitelist-domains'
         'systemd-octor'
         'fix-networkmanager-openvpn'
         'fix-networkmanager-openvpn.service')
-md5sums=('8a3b2486266d94a5338ed936eba0d7d9'
+md5sums=('fc7f97d94b5d403089fefef39b9e0891'
          'd41d8cd98f00b204e9800998ecf8427e'
          '6cb4c2f54af73993d84c6a318e81d6e7'
          '28c30f22e1f202f2ed4bfb2d7e981c20'
