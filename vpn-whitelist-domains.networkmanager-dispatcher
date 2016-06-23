@@ -8,9 +8,13 @@ WHITELIST_DOMAINS_PATH = '/etc/vpn-whitelist-domains/domains'
 
 
 def main(interface, action):
-    if action == 'vpn-up':
+    # Only set up routes when a TUN interface is detected
+    if not interface.startswith('tun'):
+        return
+
+    if action == 'up':
         local['vpn-whitelist-domains']('--file', WHITELIST_DOMAINS_PATH)
-    elif action == 'vpn-down':
+    elif action == 'down':
         local['vpn-whitelist-domains']('--file', WHITELIST_DOMAINS_PATH, '--remove')
 
 

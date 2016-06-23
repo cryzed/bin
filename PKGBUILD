@@ -21,7 +21,7 @@ source=('vpn-whitelist-domains'
         'fix-networkmanager-openvpn.service')
 md5sums=('8a3b2486266d94a5338ed936eba0d7d9'
          'd41d8cd98f00b204e9800998ecf8427e'
-         'f499dcf2bb99dc6d1d937f1b8a9dc7f6'
+         '6cb4c2f54af73993d84c6a318e81d6e7'
          '28c30f22e1f202f2ed4bfb2d7e981c20'
          '2a6b37cd45fb5a2c2575f7570940f1dc'
          'cbf72293797013c3e7c1cda4dc5d7155'
@@ -29,7 +29,7 @@ md5sums=('8a3b2486266d94a5338ed936eba0d7d9'
          '19c2fbe44de491ec04fa4c232f38a4bd'
          'de99f0c9afd92546b94fc2fb81c3e2b0'
          '6665c0605b72b03d00140ba35f682cc7'
-         '96be73f93b335a3e6583d33b9c7e158d'
+         '51052d625efcd4d799e249546f3e89cb'
          'fc0f6cd2d87c091653ce45d8153d9c6b')
 
 package() {
