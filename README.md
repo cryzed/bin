@@ -119,3 +119,11 @@ units were disabled on system A and the exact changes made were forgotten. An ea
 to create a fresh Arch Linux installation (system B) in a `systemd-nspawn` container, or as a full virtual machine, and
 running this script to get a sane systemd service configuration which can then be compared using:
 `systemd-octor --compare A.json B.json`.
+
+
+## fix-openvpn
+```systemctl enable fix-openvpn@<configuration>```
+
+Monitors the OpenVPN systemd log and automatically adds routes through the default gateway for remote link IPs that are
+attempted to be connected to. This is needed when the resolved IP address for a specified VPN domain changes, preventing
+automatic reconnects to the VPN server, because the traffic is routed through a broken connection.
