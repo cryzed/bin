@@ -12,7 +12,7 @@ link_remote_regex = re.compile(r'.+?\s+link\s+remote:\s+\[.+?\](.+)')
 
 def get_default_gateway():
     for line in ip('route').splitlines():
-        # Return first default gateway found that isn't a virtual tunnel device
+        # Return first default gateway that isn't a TUN device
         if line.startswith('default via') and 'dev tun' not in line:
             return line.split('default via')[1].split(None, 1)[0]
 

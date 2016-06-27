@@ -19,7 +19,7 @@ source=('vpn-whitelist-domains'
         'systemd-octor'
         'fix-openvpn'
         'fix-openvpn@.service')
-md5sums=('fc7f97d94b5d403089fefef39b9e0891'
+md5sums=('fd2172b03141903c33f5dc47b1c842e2'
          'd41d8cd98f00b204e9800998ecf8427e'
          '6cb4c2f54af73993d84c6a318e81d6e7'
          '28c30f22e1f202f2ed4bfb2d7e981c20'
@@ -29,7 +29,7 @@ md5sums=('fc7f97d94b5d403089fefef39b9e0891'
          '19c2fbe44de491ec04fa4c232f38a4bd'
          'de99f0c9afd92546b94fc2fb81c3e2b0'
          '6665c0605b72b03d00140ba35f682cc7'
-         '99ac616e63d972a3e503ff0ef5e5cc0f'
+         '88fb557f3c4387494001f988c31173ec'
          '628236d6565bff0868124fb9eaf8862d')
 
 package() {
