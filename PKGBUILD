@@ -29,7 +29,7 @@ md5sums=('fc7f97d94b5d403089fefef39b9e0891'
          '19c2fbe44de491ec04fa4c232f38a4bd'
          'de99f0c9afd92546b94fc2fb81c3e2b0'
          '6665c0605b72b03d00140ba35f682cc7'
-         'e72af515b8dc9067d4db372edcacfa7f'
+         '99ac616e63d972a3e503ff0ef5e5cc0f'
          '628236d6565bff0868124fb9eaf8862d')
 
 package() {
