@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
+import re
 import sys
 
 import systemd.journal
 from plumbum.cmd import ip
 
-NETWORKMANAGER_OPENVPN_IDENTIFIER = 'nm-openvpn'
-LINK_REMOTE_PREFIX = 'UDPv4 link remote: [AF_INET]'
+OPENVPN_IDENTIFIER_TEMPLATE = 'openvpn@%s'
+link_remote_regex = re.compile(r'.+?\s+link\s+remote:\s+\[.+?\](.+)')
 
 
 def get_default_gateway():
@@ -16,16 +17,16 @@ def get_default_gateway():
             return line.split('default via')[1].split(None, 1)[0]
 
 
-def main():
+def main(name):
     reader = systemd.journal.Reader()
     reader.this_boot()
-    reader.add_match(SYSLOG_IDENTIFIER=NETWORKMANAGER_OPENVPN_IDENTIFIER)
+    reader.add_match(SYSLOG_IDENTIFIER=OPENVPN_IDENTIFIER_TEMPLATE % name)
 
-    prefix_length = len(LINK_REMOTE_PREFIX)
     while True:
         for entry in reader:
             message = entry['MESSAGE']
-            if not message.startswith(LINK_REMOTE_PREFIX):
+            match = link_remote_regex.match(message)
+            if not match:
                 continue
 
             gateway = get_default_gateway()
@@ -34,7 +35,7 @@ def main():
                 print(ip('route'), file=sys.stderr)
                 continue
 
-            address = message[prefix_length:].split(':', 1)[0]
+            address = match.group(1).split(':', 1)[0]
             ip('route', 'add', address, 'via', gateway, retcode=None)
             print('Added', address, 'to whitelist')
 
@@ -42,4 +43,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1])

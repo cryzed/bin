@@ -17,8 +17,8 @@ source=('vpn-whitelist-domains'
         'backup-system'
         'keep-process-alive'
         'systemd-octor'
-        'fix-networkmanager-openvpn'
-        'fix-networkmanager-openvpn.service')
+        'fix-openvpn'
+        'fix-openvpn@.service')
 md5sums=('fc7f97d94b5d403089fefef39b9e0891'
          'd41d8cd98f00b204e9800998ecf8427e'
          '6cb4c2f54af73993d84c6a318e81d6e7'
@@ -29,8 +29,8 @@ md5sums=('fc7f97d94b5d403089fefef39b9e0891'
          '19c2fbe44de491ec04fa4c232f38a4bd'
          'de99f0c9afd92546b94fc2fb81c3e2b0'
          '6665c0605b72b03d00140ba35f682cc7'
-         '51052d625efcd4d799e249546f3e89cb'
-         'fc0f6cd2d87c091653ce45d8153d9c6b')
+         'e72af515b8dc9067d4db372edcacfa7f'
+         '628236d6565bff0868124fb9eaf8862d')
 
 package() {
     usr_bin="$pkgdir/usr/bin"
@@ -41,7 +41,7 @@ package() {
     cp 'backup-system' "$usr_bin"
     cp 'keep-process-alive' "$usr_bin"
     cp 'systemd-octor' "$usr_bin"
-    cp 'fix-networkmanager-openvpn' "$usr_bin"
+    cp 'fix-openvpn' "$usr_bin"
 
     etc_vpn_whitelist_domains="$pkgdir/etc/vpn-whitelist-domains"
     mkdir -p "$etc_vpn_whitelist_domains"
@@ -53,7 +53,7 @@ package() {
 
     etc_systemd_system="$pkgdir/etc/systemd/system"
     mkdir -p "$etc_systemd_system"
-    cp 'fix-networkmanager-openvpn.service' "$etc_systemd_system"
+    cp 'fix-openvpn@.service' "$etc_systemd_system"
 
     etc_systemd_user="$pkgdir/etc/systemd/user"
     mkdir -p "$etc_systemd_user"

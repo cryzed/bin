@@ -1,0 +1,10 @@
+[Unit]
+Description=Fix for openvpn@%I
+Before=openvpn@%i.service
+
+[Service]
+Environment="PYTHONUNBUFFERED=True"
+ExecStart=/usr/bin/fix-openvpn %i
+
+[Install]
+WantedBy=multi-user.target
