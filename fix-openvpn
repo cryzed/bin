@@ -24,8 +24,7 @@ def main(name):
 
     while True:
         for entry in reader:
-            message = entry['MESSAGE']
-            match = link_remote_regex.match(message)
+            match = link_remote_regex.match(entry['MESSAGE'])
             if not match:
                 continue
 
