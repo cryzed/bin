@@ -4,9 +4,10 @@ import re
 import sys
 
 import systemd.journal
+from plumbum import cli
 from plumbum.cmd import ip
 
-OPENVPN_IDENTIFIER_TEMPLATE = 'openvpn@%s'
+OPENVPN_SYSLOG_IDENTIFIER_TEMPLATE = 'openvpn@%s'
 link_remote_regex = re.compile(r'.+?\s+link\s+remote:\s+\[.+?\](.+)')
 
 
@@ -17,29 +18,33 @@ def get_default_gateway():
             return line.split('default via')[1].split(None, 1)[0]
 
 
-def main(name):
-    reader = systemd.journal.Reader()
-    reader.this_boot()
-    reader.add_match(SYSLOG_IDENTIFIER=OPENVPN_IDENTIFIER_TEMPLATE % name)
+class Application(cli.Application):
+    gateway = cli.SwitchAttr(['-g', '--gateway'], help=('Specify the gateway. If not set, the script will attempt to '
+                                                        'determine the default gateway'))
 
-    while True:
-        for entry in reader:
-            match = link_remote_regex.match(entry['MESSAGE'])
-            if not match:
-                continue
+    def main(self, configuration):
+        gateway = self.gateway or get_default_gateway()
+        if not gateway:
+            print('Error: Could not determine default gateway:', file=sys.stderr)
+            print(ip('route'), file=sys.stderr)
+            return 1
 
-            gateway = get_default_gateway()
-            if not gateway:
-                print('Error: Could not determine default gateway:', file=sys.stderr)
-                print(ip('route'), file=sys.stderr)
-                continue
+        reader = systemd.journal.Reader()
+        reader.this_boot()
+        reader.add_match(SYSLOG_IDENTIFIER=OPENVPN_SYSLOG_IDENTIFIER_TEMPLATE % configuration)
+        while True:
+            for entry in reader:
+                match = link_remote_regex.match(entry['MESSAGE'])
+                if not match:
+                    continue
 
-            address = match.group(1).split(':', 1)[0]
-            ip('route', 'add', address, 'via', gateway, retcode=None)
-            print('Added', address, 'to whitelist')
+                address = match.group(1).split(':', 1)[0]
+                command = ip['route', 'add', address, 'via', gateway]
+                print(command)
+                command.run(retcode=None)
 
-        reader.wait()
+            reader.wait()
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    Application.run()
