@@ -5,6 +5,7 @@ Before=openvpn@%i.service
 [Service]
 Environment="PYTHONUNBUFFERED=True"
 ExecStart=/usr/bin/fix-openvpn %i
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
