@@ -43,11 +43,9 @@ def get_lost_files_paths():
 def get_systemd_overrides():
     paths = []
     for target in '/etc/systemd/system', '/etc/systemd/user':
-        for item in os.listdir(target):
-            if not item.endswith('.d'):
-                continue
-
+        for item in (i for i in os.listdir(target) if i.endswith('.d')):
             paths.extend(get_all_file_paths(os.path.join(target, item)))
+
     return paths
 
 
