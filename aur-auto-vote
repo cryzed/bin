@@ -5,6 +5,7 @@ import collections
 import re
 import subprocess
 import sys
+import os
 import time
 
 import bs4
@@ -12,7 +13,6 @@ import requests
 
 argument_parser = argparse.ArgumentParser()
 argument_parser.add_argument('username')
-argument_parser.add_argument('password')
 argument_parser.add_argument('--ignore', '-i', action='append', default=[],
                              help='Regex for packages that should not be voted. Can be passed multiple times.')
 argument_parser.add_argument('--unvote-all', '-u', action='store_true',
@@ -75,9 +75,10 @@ def unvote_package(session, token, package):
 
 
 def main(arguments):
+    password = os.environ.get('AUR_AUTO_VOTE_PASSWORD', None) or input('Password: ')
     ignores = [re.compile(r) for r in arguments.ignore]
     session = requests.Session()
-    if not login(session, arguments.username, arguments.password):
+    if not login(session, arguments.username, password):
         argument_parser.error('Could not login!')
 
     token = get_token(session)
