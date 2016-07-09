@@ -83,7 +83,7 @@ def main(arguments):
         argument_parser.error('Could not login!')
 
     token = get_token(session)
-    voted_packages = set(p.name for p in get_voted_packages(session))
+    voted_packages = [p.name for p in sorted(get_voted_packages(session))]
     if arguments.unvote_all:
         for package in voted_packages:
             print('Unvoting package: %s... ' % package, end='', flush=True)
@@ -95,7 +95,7 @@ def main(arguments):
         return
 
     foreign_packages = set(get_foreign_packages())
-    for package in foreign_packages.difference(voted_packages):
+    for package in sorted(foreign_packages.difference(set(voted_packages))):
         if any(i.match(package) for i in ignores):
             print('Ignoring package:', package)
             continue
