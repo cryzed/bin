@@ -2,10 +2,10 @@
 
 import argparse
 import collections
+import os
 import re
 import subprocess
 import sys
-import os
 import time
 
 import bs4
@@ -33,7 +33,7 @@ Package = collections.namedtuple(
 def login(session, username, password):
     response = session.post(LOGIN_URL, {'user': username, 'passwd': password})
     soup = bs4.BeautifulSoup(response.text, 'html5lib')
-    return bool(soup.find('a', href=lambda h: h.rstrip('/').endswith('/logout')))
+    return bool(soup.select_one('#archdev-navbar').find('a', href=lambda h: h and h.rstrip('/').endswith('/logout')))
 
 
 def get_foreign_packages():
