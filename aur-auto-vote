@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+
+import argparse
+import collections
+import re
+import subprocess
+import sys
+
+import bs4
+import requests
+
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('username')
+argument_parser.add_argument('password')
+argument_parser.add_argument('--ignore', '-i', action='append', default=[],
+                             help='Regex for packages that should be ignored. Can be passed multiple times.')
+
+LOGIN_URL = 'https://aur.archlinux.org/login'
+SEARCH_URL_TEMPLATE = 'https://aur.archlinux.org/packages/?O=%d&SB=w&SO=d&PP=250&do_Search=Go'
+PACKAGES_URL = 'https://aur.archlinux.org/packages/'
+VOTE_URL_TEMPLATE = 'https://aur.archlinux.org/pkgbase/%s/vote/'
+PACKAGES_PER_PAGE = 250
+
+Package = collections.namedtuple(
+    'Package', ('name', 'version', 'votes', 'popularity', 'voted', 'notify', 'description', 'maintainer')
+)
+
+
+def login(session, username, password):
+    response = session.post(LOGIN_URL, {'user': username, 'passwd': password})
+    soup = bs4.BeautifulSoup(response.text, 'html5lib')
+    return bool(soup.find('a', href=lambda h: h.rstrip('/').endswith('/logout')))
+
+
+def get_foreign_packages():
+    return subprocess.check_output(('pacman', '-Qmq'), universal_newlines=True).splitlines()
+
+
+def get_voted_packages(session):
+    offset = 0
+
+    while True:
+        response = session.get(SEARCH_URL_TEMPLATE % offset)
+        soup = bs4.BeautifulSoup(response.text, 'html5lib')
+        for row in soup.select('.results > tbody > tr'):
+            package = Package(*(c.get_text(strip=True) for c in row.select('> td')[1:]))
+            if not package.voted:
+                return
+
+            yield package
+
+        offset += PACKAGES_PER_PAGE
+
+
+def get_token(session):
+    response = session.get(PACKAGES_URL)
+    soup = bs4.BeautifulSoup(response.text, 'html5lib')
+    return soup.select_one('input[name=token]')['value']
+
+
+def vote_package(session, token, package):
+    response = session.post(VOTE_URL_TEMPLATE % package, {'token': token, 'do_Vote': 'Vote for this package'},
+                            allow_redirects=False)
+    return response.status_code == requests.codes.found
+
+
+def main(arguments):
+    ignores = [re.compile(r) for r in arguments.ignore]
+    session = requests.Session()
+    if not login(session, arguments.username, arguments.password):
+        argument_parser.error('Could not login!')
+
+    token = get_token(session)
+    foreign_packages = set(get_foreign_packages())
+    voted_packages = set(p.name for p in get_voted_packages(session))
+    for package in foreign_packages.difference(voted_packages):
+        if any(i.match(package) for i in ignores):
+            print('Ignoring package:', package)
+            continue
+
+        print('Voting for package: %s... ' % package, end='', flush=True)
+        if vote_package(session, token, package):
+            print('done.')
+        else:
+            print('failed.')
+
+
+if __name__ == '__main__':
+    arguments = argument_parser.parse_args(sys.argv[1:])
+    sys.exit(main(arguments))

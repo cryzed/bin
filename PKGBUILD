@@ -4,8 +4,9 @@ pkgrel=1
 arch=('any')
 url='https://github.com/cryzed/bin'
 license=('MIT')
-depends=('python-plumbum' 'python-peewee' 'python-psutil' 'lostfiles' 'systemd'
-         'networkmanager' 'python-systemd')
+depends=('python' 'python-plumbum' 'python-peewee' 'python-psutil' 'lostfiles'
+         'systemd' 'networkmanager' 'python-systemd' 'python-requests'
+         'python-beautifulsoup4' 'python-html5lib')
 backup=('etc/vpn-whitelist-domains/domains')
 source=('vpn-whitelist-domains'
         'vpn-whitelist-domains.domains'
@@ -18,7 +19,8 @@ source=('vpn-whitelist-domains'
         'keep-process-alive'
         'systemd-octor'
         'fix-openvpn'
-        'fix-openvpn@.service')
+        'fix-openvpn@.service'
+        'aur-auto-vote')
 md5sums=('fd2172b03141903c33f5dc47b1c842e2'
          'd41d8cd98f00b204e9800998ecf8427e'
          '6cb4c2f54af73993d84c6a318e81d6e7'
@@ -30,7 +32,8 @@ md5sums=('fd2172b03141903c33f5dc47b1c842e2'
          'de99f0c9afd92546b94fc2fb81c3e2b0'
          '6665c0605b72b03d00140ba35f682cc7'
          '50c8f18c04c9f1034769dbbc17e14881'
-         '9733285261415b47cd8f116e328a4474')
+         '9733285261415b47cd8f116e328a4474'
+         'c8bff90244b202dd56e7d735cdeefb73')
 
 package() {
     usr_bin="$pkgdir/usr/bin"
@@ -42,6 +45,7 @@ package() {
     cp 'keep-process-alive' "$usr_bin"
     cp 'systemd-octor' "$usr_bin"
     cp 'fix-openvpn' "$usr_bin"
+    cp 'aur-auto-vote' "$usr_bin"
 
     etc_vpn_whitelist_domains="$pkgdir/etc/vpn-whitelist-domains"
     mkdir -p "$etc_vpn_whitelist_domains"
