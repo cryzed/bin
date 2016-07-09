@@ -127,3 +127,30 @@ running this script to get a sane systemd service configuration which can then b
 Monitors the OpenVPN systemd log and automatically adds routes through the default gateway for remote link IPs that are
 attempted to be connected to. This is needed when the resolved IP address for a specified VPN domain changes, preventing
 automatic reconnects to the VPN server, because the traffic is routed through a broken connection.
+
+
+## [aur-auto-vote](https://www.reddit.com/r/archlinux/comments/4ryh6t/aur_autovote/)
+I really wanted to show my appreciation for the AUR packages that I am using, but am entirely too lazy to keep the list
+of voted-for packages up-to-date manually.
+
+    $ aur-auto-vote --help
+    usage: aur-auto-vote [-h] [--ignore IGNORE] [--unvote-all] [--delay DELAY]
+                         username
+
+    positional arguments:
+      username
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      --ignore IGNORE, -i IGNORE
+                            Regex for packages that should not be voted. Can be
+                            passed multiple times.
+      --unvote-all, -u      Unvote all voted-for packages, all other arguments are
+                            ignored.
+      --delay DELAY, -d DELAY
+                            Delay between voting actions (seconds).
+
+When voting already voted-for packages will be automatically skipped. Local PKGBUILDs I usually prefix with my nick,
+i.e. `cryzed-` so I pass in `--ignore 'cryzed-.*'`. If you feel that your voted-for packages are completely outdated,
+consider using `--unvote-all` to remove all votes beforehand. It might be a good idea to specify a `--delay` > 0 to
+prevent hammering the server.
