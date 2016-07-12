@@ -68,7 +68,7 @@ def main():
     paths.extend(p for p in get_lost_files_paths() if os.path.isfile(p) and not blacklisted(p))
     paths.extend(p for p in get_systemd_overrides() if not blacklisted(p))
     paths.append('/home')
-    tar('--create', '--auto-compress', '--directory', '/', '--file', OUTPUT_FILE_NAME, *paths)
+    tar('--create', '--auto-compress', '--directory', '/', '--file', OUTPUT_FILE_NAME, *paths, retcode=(0, 1))
     shutil.chown(OUTPUT_FILE_NAME, user.pw_uid, user.pw_gid)
 
 
