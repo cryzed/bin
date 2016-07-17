@@ -7,6 +7,7 @@ import shutil
 import sys
 from datetime import datetime
 
+from plumbum import local
 from plumbum.cmd import pacman, awk, tar, sudo
 
 BLACKLIST = (
@@ -18,6 +19,7 @@ BLACKLIST = (
 )
 OUTPUT_FILE_NAME = 'backup-%s-%s.tar.gz' % (os.uname().nodename, datetime.now().strftime('%Y-%d-%m_%H-%M'))
 EXPLICITLY_INSTALLED_PACKAGES_FILE_NAME = 'pacman-explicitly-installed-packages.txt'
+SYSTEMD_UNIT_FILES_JSON_FILE_NAME = 'systemd-unit-files.json'
 
 
 def get_all_file_paths(path):
@@ -59,9 +61,16 @@ def main():
         return 1
 
     user = pwd.getpwnam(os.environ['SUDO_USER'])
+
+    # Write list of explicitly installed packages
     path = os.path.join(user.pw_dir, EXPLICITLY_INSTALLED_PACKAGES_FILE_NAME)
     with open(path, 'w') as file:
         file.write(get_explicitly_installed_packages())
+    shutil.chown(path, user.pw_uid, user.pw_gid)
+
+    # Write systemd-octor systemd configuration json
+    path = os.path.join(user.pw_dir, SYSTEMD_UNIT_FILES_JSON_FILE_NAME)
+    local['systemd-octor']('--output', path)
     shutil.chown(path, user.pw_uid, user.pw_gid)
 
     paths = list(p for p in get_modified_backup_files_paths() if os.path.isfile(p) and not blacklisted(p))
@@ -70,7 +79,6 @@ def main():
     paths.append('/root')
     paths.append('/home')
     tar('--create', '--auto-compress', '--directory', '/', '--file', OUTPUT_FILE_NAME, *paths, retcode=(0, 1))
-    #shutil.chown(OUTPUT_FILE_NAME, user.pw_uid, user.pw_gid)
 
 
 if __name__ == '__main__':
