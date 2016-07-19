@@ -1,0 +1,9 @@
+[Unit]
+Description=Backup System
+
+[Service]
+EnvironmentFile=/etc/backup-system.conf
+ExecStart=/usr/bin/backup-system $DIRECTORY
+
+[Install]
+WantedBy=multi-user.target

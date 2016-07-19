@@ -3,7 +3,6 @@
 import os
 import pwd
 import re
-import shutil
 import sys
 from datetime import datetime
 
@@ -55,31 +54,39 @@ def blacklisted(path):
     return any(entry.match(path) for entry in BLACKLIST)
 
 
-def main():
-    if not os.getuid() == 0:
+def main(destination=os.getcwd()):
+    uid = os.getuid()
+    if not uid == 0:
         print('This script must be run as root!', file=sys.stderr)
         return 1
-
-    user = pwd.getpwnam(os.environ['SUDO_USER'])
+    root = pwd.getpwuid(uid)
 
     # Write list of explicitly installed packages
-    path = os.path.join(user.pw_dir, EXPLICITLY_INSTALLED_PACKAGES_FILE_NAME)
+    path = os.path.join(root.pw_dir, EXPLICITLY_INSTALLED_PACKAGES_FILE_NAME)
     with open(path, 'w') as file:
         file.write(get_explicitly_installed_packages())
-    shutil.chown(path, user.pw_uid, user.pw_gid)
+    remove = [path]
 
     # Write systemd-octor systemd configuration json
-    path = os.path.join(user.pw_dir, SYSTEMD_UNIT_FILES_JSON_FILE_NAME)
+    path = os.path.join(root.pw_dir, SYSTEMD_UNIT_FILES_JSON_FILE_NAME)
     local['systemd-octor']('--output', path)
-    shutil.chown(path, user.pw_uid, user.pw_gid)
+    remove.append(path)
 
-    paths = list(p for p in get_modified_backup_files_paths() if os.path.isfile(p) and not blacklisted(p))
-    paths.extend(p for p in get_lost_files_paths() if os.path.isfile(p) and not blacklisted(p))
-    paths.extend(p for p in get_systemd_overrides() if not blacklisted(p))
-    paths.append('/root')
-    paths.append('/home')
-    tar('--create', '--auto-compress', '--directory', '/', '--file', OUTPUT_FILE_NAME, *paths, retcode=(0, 1))
+    backup_paths = list(p for p in get_modified_backup_files_paths() if os.path.isfile(p) and not blacklisted(p))
+    backup_paths.extend(p for p in get_lost_files_paths() if os.path.isfile(p) and not blacklisted(p))
+    backup_paths.extend(p for p in get_systemd_overrides() if not blacklisted(p))
+    backup_paths.append(root.pw_dir)
+
+    # TODO: Find all interative users and use pw_dirs explicitly?
+    backup_paths.append('/home')
+
+    output_path = os.path.join(destination, OUTPUT_FILE_NAME)
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    tar('--create', '--auto-compress', '--directory', '/', '--file', output_path, *backup_paths, retcode=(0, 1))
+
+    for path in remove:
+        os.remove(path)
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(main(sys.argv[1]) if len(sys.argv) > 1 else main())

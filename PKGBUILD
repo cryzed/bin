@@ -7,7 +7,8 @@ license=('MIT')
 depends=('python' 'python-plumbum' 'python-peewee' 'python-psutil' 'lostfiles'
          'systemd' 'networkmanager' 'python-systemd' 'python-requests'
          'python-beautifulsoup4' 'python-html5lib')
-backup=('etc/vpn-whitelist-domains/domains')
+backup=('etc/vpn-whitelist-domains/domains'
+        'etc/backup-system.conf')
 source=('vpn-whitelist-domains'
         'vpn-whitelist-domains.domains'
         'vpn-whitelist-domains.networkmanager-dispatcher'
@@ -16,6 +17,8 @@ source=('vpn-whitelist-domains'
         'warm-up-dns-resolver.timer'
         'restart-plasmashell'
         'backup-system'
+        'backup-system.service'
+        'backup-system.timer'
         'keep-process-alive'
         'systemd-octor'
         'fix-openvpn'
@@ -28,7 +31,9 @@ md5sums=('fd2172b03141903c33f5dc47b1c842e2'
          '2a6b37cd45fb5a2c2575f7570940f1dc'
          'cbf72293797013c3e7c1cda4dc5d7155'
          '4e4ad52e9b431121ba2453f73863a42d'
-         'f9a6a1a838f372e34663bb59f029e064'
+         '8c61a2f44d44aaff8e7a26fdf71165e2'
+         'f93789f6e9ceea3c6e512f6c40ea16e7'
+         '01b6c960bac9538e620d9dd08991195a'
          'de99f0c9afd92546b94fc2fb81c3e2b0'
          '6665c0605b72b03d00140ba35f682cc7'
          '50c8f18c04c9f1034769dbbc17e14881'
@@ -58,6 +63,8 @@ package() {
     etc_systemd_system="$pkgdir/etc/systemd/system"
     mkdir -p "$etc_systemd_system"
     cp 'fix-openvpn@.service' "$etc_systemd_system"
+    cp 'backup-system.service' "$etc_systemd_system"
+    cp 'backup-system.timer' "$etc_systemd_system"
 
     etc_systemd_user="$pkgdir/etc/systemd/user"
     mkdir -p "$etc_systemd_user"
