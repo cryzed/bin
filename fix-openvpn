@@ -7,7 +7,6 @@ import systemd.journal
 from plumbum import cli
 from plumbum.cmd import ip
 
-OPENVPN_SYSLOG_IDENTIFIER_TEMPLATE = 'openvpn@%s'
 link_remote_regex = re.compile(r'.+?\s+link\s+remote:\s+\[.+?\](.+)')
 
 
@@ -22,7 +21,7 @@ class Application(cli.Application):
     gateway = cli.SwitchAttr(['-g', '--gateway'], help=('Specify the gateway. If not set, the script will attempt to '
                                                         'determine the default gateway'))
 
-    def main(self, configuration):
+    def main(self, syslog_identifier):
         gateway = self.gateway or get_default_gateway()
         if not gateway:
             print('Error: Could not determine default gateway:', file=sys.stderr)
@@ -31,7 +30,7 @@ class Application(cli.Application):
 
         reader = systemd.journal.Reader()
         reader.this_boot()
-        reader.add_match(SYSLOG_IDENTIFIER=OPENVPN_SYSLOG_IDENTIFIER_TEMPLATE % configuration)
+        reader.add_match(SYSLOG_IDENTIFIER=syslog_identifier)
         while True:
             for entry in reader:
                 match = link_remote_regex.match(entry['MESSAGE'])
