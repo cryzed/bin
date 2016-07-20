@@ -122,12 +122,26 @@ running this script to get a sane systemd service configuration which can then b
 
 
 ## fix-openvpn
-```systemctl enable fix-openvpn@<configuration>```
+```systemctl enable fix-openvpn@<syslog-identifier>```
+```Usage:
+    fix-openvpn [SWITCHES] syslog_identifier
+
+Meta-switches
+    -h, --help                   Prints this help message and quits
+    --help-all                   Print help messages of all subcommands and quit
+    -v, --version                Prints the program's version and quits
+
+Switches
+    -g, --gateway VALUE:str      Specify the gateway. If not set, the script will attempt to determine the default gateway
+
+```
 
 Monitors the OpenVPN systemd log and automatically adds routes through the default gateway for remote link IPs that are
 attempted to be connected to. This is needed when the resolved IP address for a specified VPN domain changes, preventing
 automatic reconnects to the VPN server, because the traffic is routed through a broken connection.
 
+Note: It seems that OpenVPN already attempts to do that on its own, but somehow fails. It might be using the old IP
+address after re-establishing the tunnel.
 
 ## [aur-auto-vote](https://www.reddit.com/r/archlinux/comments/4ryh6t/aur_autovote/)
 I really wanted to show my appreciation for the AUR packages that I am using, but am entirely too lazy to keep the list
