@@ -122,7 +122,7 @@ running this script to get a sane systemd service configuration which can then b
 
 
 ## fix-openvpn
-```systemctl enable fix-openvpn@<syslog-identifier>```
+```# systemctl enable fix-openvpn@<syslog-identifier>```
 ```Usage:
     fix-openvpn [SWITCHES] syslog_identifier
 
@@ -168,3 +168,28 @@ When voting already voted-for packages will be automatically skipped. Local PKGB
 i.e. `cryzed-` so I pass in `--ignore 'cryzed-.*'`. If you feel that your voted-for packages are completely outdated,
 consider using `--unvote-all` to remove all votes beforehand. It might be a good idea to specify a `--delay` > 0 to
 prevent hammering the server.
+
+## backup-system
+* `# systemctl start backup-system` (to start the script via systemd. A systemd `EnvironmentFile` with a `DIRECTORY` key
+is needed at `/etc/backup-system.conf`)
+* `# backup-system [DESTINATION]` (to start the script manually, destination is optional)
+* `# systemctl enable backup-system.timer` (to enable the timer for daily backups)
+
+This is a script that backups the most important parts of my Arch Linux installation, should it ever break in an
+unrecoverable fashion. It uses:
+
+* [`lostfiles`](https://aur.archlinux.org/packages/lostfiles/) to get a list of files in the system which are not part
+of any package, i.e. files I most likely created and added to the system without using a custom PKGBUILD.
+* `pacman -Qii | awk '/^MODIFIED/ {print $2}'` to get a list of modified backup files, i.e. modified configuration files
+of installed packages
+* `pacman -Q --explicit` to save the list of all explicitly installed packages
+* all systemd overrides located in `/etc/systemd/system` or `/etc/systemd/user`
+* `systemd-octor` (see above) to save the systemd service configuration
+* all `/home` directories
+* `/root`
+
+and uses `tar` to compress all those files into an archive with the current date.
+
+Note that I have symlinked all XDG directories, i.e. "Documents", "Downloads", "Music" etc. to a different HDD to
+prevent unnecessary writes on my system SSD -- so when backing up the `/home` directories, tar will only backup the
+dotfiles and not automatically follow the symlinks. The resulting backup file is usually around ~10-12 GB in size.
