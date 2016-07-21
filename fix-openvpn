@@ -1,49 +1,58 @@
 #!/usr/bin/env python
 
+import argparse
 import re
+import subprocess
 import sys
 
 import systemd.journal
-from plumbum import cli
-from plumbum.cmd import ip
 
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('syslog-identifier', help='The syslog identifier of the journal to monitor')
+argument_parser.add_argument('gateway', nargs='?', help=('Specify the gateway. If not set, the script will attempt to '
+                                                         'determine the default gateway'))
 link_remote_regex = re.compile(r'.+?\s+link\s+remote:\s+\[.+?\](.+)')
 
 
-def get_default_gateway():
-    for line in ip('route').splitlines():
-        # Return first default gateway that isn't a TUN device
+def determine_default_gateway():
+    try:
+        output = subprocess.check_output(('ip', 'route'), universal_newlines=True)
+    except subprocess.CalledProcessError as exception:
+        return None, exception.output
+
+    # Return first default gateway found that isn't a TUN device. This doesn't cover all cases, but works for my OpenVPN
+    # configuration.
+    for line in output.splitlines():
         if line.startswith('default via') and 'dev tun' not in line:
-            return line.split('default via')[1].split(None, 1)[0]
+            return line.split('default via')[1].split(None, 1)[0], output
+
+    return None, output
 
 
-class Application(cli.Application):
-    gateway = cli.SwitchAttr(['-g', '--gateway'], help=('Specify the gateway. If not set, the script will attempt to '
-                                                        'determine the default gateway'))
+def main(arguments):
+    gateway, output = arguments.gateway or determine_default_gateway()
+    if not gateway:
+        print('Error: Could not determine default gateway:', file=sys.stderr)
+        print(output, file=sys.stderr)
+        return 1
 
-    def main(self, syslog_identifier):
-        gateway = self.gateway or get_default_gateway()
-        if not gateway:
-            print('Error: Could not determine default gateway:', file=sys.stderr)
-            print(ip('route'), file=sys.stderr)
-            return 1
+    reader = systemd.journal.Reader()
+    reader.this_boot()
+    reader.add_match(SYSLOG_IDENTIFIER=getattr(arguments, 'syslog-identifier'))
+    while True:
+        for entry in reader:
+            match = link_remote_regex.match(entry['MESSAGE'])
+            if not match:
+                continue
 
-        reader = systemd.journal.Reader()
-        reader.this_boot()
-        reader.add_match(SYSLOG_IDENTIFIER=syslog_identifier)
-        while True:
-            for entry in reader:
-                match = link_remote_regex.match(entry['MESSAGE'])
-                if not match:
-                    continue
+            address = match.group(1).split(':', 1)[0]
+            command = ('ip', 'route', 'add', address, 'via', gateway)
+            print(' '.join(command))
+            subprocess.run(command)
 
-                address = match.group(1).split(':', 1)[0]
-                command = ip['route', 'add', address, 'via', gateway]
-                print(command)
-                command.run(retcode=None)
-
-            reader.wait()
+        reader.wait()
 
 
 if __name__ == '__main__':
-    Application.run()
+    arguments = argument_parser.parse_args(sys.argv[1:])
+    sys.exit(main(arguments))
