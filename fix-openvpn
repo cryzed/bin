@@ -44,7 +44,7 @@ def main(arguments):
                 continue
 
             address = match.group(1).split(':', 1)[0]
-            command = ('ip', 'route', 'add', address, 'via', gateway)
+            command = 'ip', 'route', 'add', address, 'via', gateway
             print(' '.join(command))
             subprocess.run(command)
 
