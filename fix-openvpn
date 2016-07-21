@@ -32,9 +32,7 @@ def determine_default_gateway():
 def main(arguments):
     gateway, output = arguments.gateway or determine_default_gateway()
     if not gateway:
-        print('Error: Could not determine default gateway:', file=sys.stderr)
-        print(output, file=sys.stderr)
-        return 1
+        argument_parser.error('Error: could not determine default gateway:\n%s' % output)
 
     reader = systemd.journal.Reader()
     reader.this_boot()
@@ -55,4 +53,4 @@ def main(arguments):
 
 if __name__ == '__main__':
     arguments = argument_parser.parse_args(sys.argv[1:])
-    sys.exit(main(arguments))
+    main(arguments)
