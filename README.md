@@ -122,8 +122,9 @@ running this script to get a sane systemd service configuration which can then b
 
 
 ## fix-openvpn
-```# systemctl enable fix-openvpn@<syslog-identifier>```
-```usage: fix-openvpn [-h] syslog-identifier [gateway]
+`# systemctl enable fix-openvpn@<syslog-identifier>`
+```
+usage: fix-openvpn [-h] syslog-identifier [gateway]
 
 positional arguments:
   syslog-identifier  The syslog identifier of the journal to monitor
@@ -140,6 +141,7 @@ automatic reconnects to the VPN server, because the traffic is routed through a 
 
 Note: It seems that OpenVPN already attempts to do that on its own, but somehow fails. It might be using the old IP
 address after re-establishing the tunnel.
+
 
 ## [aur-auto-vote](https://www.reddit.com/r/archlinux/comments/4ryh6t/aur_autovote/)
 I really wanted to show my appreciation for the AUR packages that I am using, but am entirely too lazy to keep the list
@@ -166,6 +168,7 @@ When voting already voted-for packages will be automatically skipped. Local PKGB
 i.e. `cryzed-` so I pass in `--ignore 'cryzed-.*'`. If you feel that your voted-for packages are completely outdated,
 consider using `--unvote-all` to remove all votes beforehand. It might be a good idea to specify a `--delay` > 0 to
 prevent hammering the server.
+
 
 ## backup-system
 * `# systemctl start backup-system` (to start the script via systemd. A systemd `EnvironmentFile` with a `DIRECTORY` key
