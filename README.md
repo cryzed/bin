@@ -123,17 +123,15 @@ running this script to get a sane systemd service configuration which can then b
 
 ## fix-openvpn
 ```# systemctl enable fix-openvpn@<syslog-identifier>```
-```Usage:
-    fix-openvpn [SWITCHES] syslog_identifier
+```usage: fix-openvpn [-h] syslog-identifier [gateway]
 
-Meta-switches
-    -h, --help                   Prints this help message and quits
-    --help-all                   Print help messages of all subcommands and quit
-    -v, --version                Prints the program's version and quits
+positional arguments:
+  syslog-identifier  The syslog identifier of the journal to monitor
+  gateway            Specify the gateway. If not set, the script will attempt
+                     to determine the default gateway
 
-Switches
-    -g, --gateway VALUE:str      Specify the gateway. If not set, the script will attempt to determine the default gateway
-
+optional arguments:
+  -h, --help         show this help message and exit
 ```
 
 Monitors the OpenVPN systemd log and automatically adds routes through the default gateway for remote link IPs that are
