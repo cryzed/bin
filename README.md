@@ -64,19 +64,20 @@ and most domains have a low TTL or even a TTL of 0 set which disables caching in
 a bit annoying, so I wrote this script.
 
 ```
-Usage:
-    warm-up-dns-resolver [SWITCHES]
+usage: warm-up-dns-resolver [-h] [--file path [path ...]] [--use-firefox]
+                            [--days DAYS]
+                            [domains]
 
-Meta-switches
-    -h, --help                  Prints this help message and quits
-    --help-all                  Print help messages of all subcommands and quit
-    -v, --version               Prints the program's version and quits
+positional arguments:
+  domains
 
-Switches
-    --days, -n VALUE:int        Use domains of history up to n days before the last made entry; the default is 7
-    --domain, -d VALUE:str      Domain to resolve; may be given multiple times
-    --file, -f VALUE:str        Path to file containing domains to be resolved; may be given multiple times
-    --use-firefox               Use domains in Mozilla Firefox's history
+optional arguments:
+  -h, --help            show this help message and exit
+  --file path [path ...]
+                        Paths to files containing domains
+  --use-firefox         Use domains in Mozilla Firefox's history
+  --days DAYS           Use domains of history up to n days before the last
+                        made entry
 ```
 
 It can also scrape domains directly from Mozilla Firefox's history. The matching systemd *.service and *.timer files

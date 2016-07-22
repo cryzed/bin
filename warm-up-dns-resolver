@@ -1,13 +1,22 @@
 #!/usr/bin/env python
 
+import argparse
+import concurrent.futures
 import glob
 import os
 import socket
-from concurrent.futures import ThreadPoolExecutor
+import sys
 from datetime import datetime, timedelta
 
 import peewee
-from plumbum import cli
+
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('domains', nargs='?', default=[])
+argument_parser.add_argument('--file', dest='paths', metavar='path', nargs='+', default=[],
+                             help='Paths to files containing domains')
+argument_parser.add_argument('--use-firefox', action='store_true', help="Use domains in Mozilla Firefox's history")
+argument_parser.add_argument('--days', type=int, default=7,
+                             help='Use domains of history up to n days before the last made entry')
 
 MOZILLA_FIREFOX_PLACES_SQLITE_GLOB = '~/.mozilla/firefox/*.default/places.sqlite'
 database = peewee.SqliteDatabase(None)
@@ -25,9 +34,11 @@ class Place(peewee.Model):
 
 def get_firefox_domains(days):
     candidates = glob.glob(os.path.expanduser(MOZILLA_FIREFOX_PLACES_SQLITE_GLOB))
+    domains = set()
+
     # Could not determine path to places.sqlite
     if not len(candidates) == 1:
-        return
+        return domains
 
     database.init(candidates[0])
     query = Place.select().order_by(-Place.last_visit_date)
@@ -35,13 +46,12 @@ def get_firefox_domains(days):
     # No history found
     latest = query.get()
     if not latest:
-        return
+        return domains
 
     # Reduce timestamp precision so datetime can parse it
     last_visited_date = datetime.fromtimestamp(latest.last_visit_date / 1000000)
     min_date = last_visited_date - timedelta(days=days)
 
-    domains = set()
     for place in query:
         last_visited_date = datetime.fromtimestamp(place.last_visit_date / 1000000)
         if last_visited_date < min_date:
@@ -61,33 +71,29 @@ def get_line_set(file):
         line = line.strip()
         if line and not line.startswith('#'):
             domains.add(line)
+
     return domains
 
 
-class Application(cli.Application):
-    paths = cli.SwitchAttr(['--file', '-f'], list=True, help='Path to file containing domains')
-    use_firefox = cli.Flag(['--use-firefox'], help="Use domains in Mozilla Firefox's history")
-    days = cli.SwitchAttr(['--days', '-n'], argtype=int, default=7,
-                          help='Use domains of history up to n days before the last made entry')
+def main(arguments):
+    domains = set(arguments.domains)
 
-    def main(self, *domains):
-        domains = set(domains)
+    # Load all domains from path
+    for path in (os.path.expanduser(p) for p in arguments.paths):
+        if os.path.exists(path):
+            with open(path) as file:
+                domains = domains.union(get_line_set(file))
 
-        # Load all domains from path
-        for path in (os.path.expanduser(p) for p in self.paths):
-            if os.path.exists(path):
-                with open(path) as file:
-                    domains = domains.union(get_line_set(file))
+    if arguments.use_firefox:
+        domains = domains.union(get_firefox_domains(arguments.days))
 
-        if self.use_firefox:
-            domains = domains.union(get_firefox_domains(self.days))
-
-        print('Warming up DNS cache with %d domains...' % len(domains), end='', flush=True)
-        executor = ThreadPoolExecutor()
-        executor.map(socket.gethostbyname, domains)
-        executor.shutdown()
-        print(' done!')
+    print('Warming up DNS cache with %d domains...' % len(domains), end='', flush=True)
+    executor = concurrent.futures.ThreadPoolExecutor()
+    executor.map(socket.gethostbyname, domains)
+    executor.shutdown()
+    print(' done!')
 
 
 if __name__ == '__main__':
-    Application.run()
+    arguments = argument_parser.parse_args(sys.argv[1:])
+    sys.exit(main(arguments))
