@@ -1,64 +1,79 @@
 #!/usr/bin/env python
 
+import argparse
 import os
 import socket
+import subprocess
 import sys
 
-from plumbum import cli
-from plumbum.cmd import ip, sudo
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('addresses', nargs='*')
+argument_parser.add_argument('--remove', action='store_true', help='Remove addresses from whitelist')
+argument_parser.add_argument('--file', dest='paths', metavar='PATH', nargs='+', default=[],
+                             help='Paths to files containing addresses')
+argument_parser.add_argument('--gateway', help=('Specify the gateway used to bypass the VPN. If not set, the script '
+                                                'will attempt to determine the default gateway'))
 
 
-def get_default_gateway():
-    for line in ip('route').splitlines():
-        # Return first default gateway that isn't a TUN device
+def determine_default_gateway():
+    try:
+        output = subprocess.check_output(('ip', 'route'), universal_newlines=True)
+    except subprocess.CalledProcessError as exception:
+        return None, exception.output
+
+    # Return first default gateway found that isn't a TUN device. This doesn't cover all cases, but works for my OpenVPN
+    # configuration.
+    for line in output.splitlines():
         if line.startswith('default via') and 'dev tun' not in line:
-            return line.split('default via')[1].split(None, 1)[0]
+            return line.split('default via')[1].split(None, 1)[0], output
+
+    return None, output
 
 
 def get_line_set(file):
-    domains = set()
+    lines = set()
     for line in file:
         line = line.strip()
         if line and not line.startswith('#'):
-            domains.add(line)
-    return domains
+            lines.add(line)
+
+    return lines
 
 
-class Application(cli.Application):
-    remove = cli.Flag(['-r', '--remove'], help='Remove domain from whitelist')
-    paths = cli.SwitchAttr(['--file', '-f'], list=True, help='Path to file containing domains')
-    gateway = cli.SwitchAttr(['-g', '--gateway'], help=('Specify the gateway used to bypass the VPN. If not set, the '
-                                                        'script will attempt to determine the default gateway'))
+def main(arguments):
+    gateway, output = arguments.gateway or determine_default_gateway()
+    if not gateway:
+        argument_parser.error('Error: Could not determine default gateway:\n%s' % output)
 
-    def main(self, *domains):
-        gateway = self.gateway or get_default_gateway()
-        if not gateway:
-            print('Error: Could not determine default gateway:', file=sys.stderr)
-            print(ip('route'), file=sys.stderr)
-            return 1
+    addresses = set(arguments.addresses)
+    for path in (os.path.expanduser(p) for p in arguments.paths):
+        if os.path.exists(path):
+            with open(path) as file:
+                addresses = addresses.union(get_line_set(file))
 
-        domains = set(domains)
-        for path in (os.path.expanduser(p) for p in self.paths):
-            if os.path.exists(path):
-                with open(path) as file:
-                    domains = domains.union(get_line_set(file))
+    for address in addresses:
+        print(address, end=':\n')
+        for ip in set(i[4][0] for i in socket.getaddrinfo(address, None)):
+            if arguments.remove:
+                process = subprocess.run(('ip', 'route', 'del', ip, 'via', gateway), stdout=subprocess.PIPE,
+                                         stderr=subprocess.PIPE, universal_newlines=True)
 
-        for domain in domains:
-            print('%s:' % domain)
-            for address in set(i[4][0] for i in socket.getaddrinfo(domain, None)):
-                if self.remove:
-                    sudo(ip['route', 'del', address, 'via', gateway], retcode=None)
-                    print('  Removed', address, 'from whitelist')
+                if process.returncode == 0:
+                    print('  Removed', ip, 'from whitelist')
                 else:
-                    command = sudo[ip['route', 'add', address, 'via', gateway]]
-                    exit_code, stdout, stderr = command.run(retcode=None)
-                    if exit_code != 0:
-                        print('  Failed to whitelist %s: %s' % (address, stderr.strip()), file=sys.stderr)
-                        continue
+                    print('  Failed to remove %s from whitelist: %s' % (ip, process.stderr.strip()),
+                          file=sys.stderr)
+            else:
+                process = subprocess.run(('ip', 'route', 'add', ip, 'via', gateway), stdout=subprocess.PIPE,
+                                         stderr=subprocess.PIPE, universal_newlines=True)
 
-                    print('  Added', address, 'to whitelist')
-            print()
+                if process.returncode == 0:
+                    print('  Added', ip, 'to whitelist')
+                else:
+                    print('  Failed to whitelist %s: %s' % (ip, process.stderr.strip()), file=sys.stderr)
+        print()
 
 
 if __name__ == '__main__':
-    Application.run()
+    arguments = argument_parser.parse_args(sys.argv[1:])
+    main(arguments)

@@ -11,8 +11,8 @@ from datetime import datetime, timedelta
 import peewee
 
 argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('domains', nargs='?', default=[])
-argument_parser.add_argument('--file', dest='paths', metavar='path', nargs='+', default=[],
+argument_parser.add_argument('domains', nargs='*')
+argument_parser.add_argument('--file', dest='paths', metavar='PATH', nargs='+', default=[],
                              help='Paths to files containing domains')
 argument_parser.add_argument('--use-firefox', action='store_true', help="Use domains in Mozilla Firefox's history")
 argument_parser.add_argument('--days', type=int, default=7,
@@ -66,13 +66,13 @@ def get_firefox_domains(days):
 
 
 def get_line_set(file):
-    domains = set()
+    lines = set()
     for line in file:
         line = line.strip()
         if line and not line.startswith('#'):
-            domains.add(line)
+            lines.add(line)
 
-    return domains
+    return lines
 
 
 def main(arguments):

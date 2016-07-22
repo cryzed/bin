@@ -10,9 +10,8 @@ import sys
 import textwrap
 
 argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('--output', '-o', default='list-unit-files.json',
-                             help='Change destination of output file')
-argument_parser.add_argument('--compare', '-c', nargs=2, help='Compare first output to second output')
+argument_parser.add_argument('--destination', default='list-unit-files.json', help='Change destination of output file')
+argument_parser.add_argument('--compare', nargs=2, help='Compare first output to second output')
 
 
 def compare(a_path, b_path):
@@ -49,10 +48,10 @@ def main(arguments):
         unit, state = line.split(None, 1)
         data[state.strip()].append(unit.strip())
 
-    with open(arguments.output, 'w') as file:
+    with open(arguments.destination, 'w') as file:
         json.dump(data, file)
 
 
 if __name__ == '__main__':
     arguments = argument_parser.parse_args(sys.argv[1:])
-    sys.exit(main(arguments))
+    main(arguments)

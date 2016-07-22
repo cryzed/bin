@@ -16,9 +16,10 @@ BLACKLIST = (
     re.compile(re.escape('/opt')),
     re.compile(re.escape('/usr'))
 )
+
 OUTPUT_FILE_NAME = 'backup-%s-%s.tar.gz' % (os.uname().nodename, datetime.now().strftime('%Y-%d-%m_%H-%M'))
-EXPLICITLY_INSTALLED_PACKAGES_FILE_NAME = 'pacman-explicitly-installed-packages.txt'
-SYSTEMD_UNIT_FILES_JSON_FILE_NAME = 'systemd-unit-files.json'
+PACMAN_EXPLICITLY_INSTALLED_PACKAGES_FILE_NAME = 'pacman-explicitly-installed-packages.txt'
+SYSTEMD_OCTOR_FILE_NAME = 'systemd-unit-files.json'
 
 
 def get_all_file_paths(path):
@@ -62,14 +63,14 @@ def main(destination=os.getcwd()):
     root = pwd.getpwuid(uid)
 
     # Write list of explicitly installed packages
-    path = os.path.join(root.pw_dir, EXPLICITLY_INSTALLED_PACKAGES_FILE_NAME)
+    path = os.path.join(root.pw_dir, PACMAN_EXPLICITLY_INSTALLED_PACKAGES_FILE_NAME)
     with open(path, 'w') as file:
         file.write(get_explicitly_installed_packages())
     remove = [path]
 
     # Write systemd-octor systemd configuration json
-    path = os.path.join(root.pw_dir, SYSTEMD_UNIT_FILES_JSON_FILE_NAME)
-    local['systemd-octor']('--output', path)
+    path = os.path.join(root.pw_dir, SYSTEMD_OCTOR_FILE_NAME)
+    local['systemd-octor']('--destination', path)
     remove.append(path)
 
     backup_paths = list(p for p in get_modified_backup_files_paths() if os.path.isfile(p) and not blacklisted(p))
