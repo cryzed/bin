@@ -7,7 +7,7 @@ import sys
 from datetime import datetime
 
 from plumbum import local
-from plumbum.cmd import pacman, awk, tar, sudo
+from plumbum.cmd import pacman, awk, tar, lostfiles
 
 BLACKLIST = (
     re.compile(re.escape('/etc/fonts')),
@@ -39,7 +39,7 @@ def get_modified_backup_files_paths():
 
 def get_lost_files_paths():
     # https://aur.archlinux.org/packages/lostfiles/
-    return [l for l in sudo('lostfiles').splitlines() if l.strip()]
+    return [l for l in lostfiles('relaxed').splitlines() if l.strip()]
 
 
 def get_systemd_overrides():
