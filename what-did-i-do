@@ -18,16 +18,23 @@ DEFAULT_PACMAN_CACHE_PATH = '/var/cache/pacman/pkg/'
 PACMAN_CONF_PATH = '/etc/pacman.conf'
 
 
-def get_owning_package(path):
+def get_command_stdout(*arguments):
     try:
-        return subprocess.check_output(('pacman', '-Qoq', path), universal_newlines=True,
-                                       stderr=subprocess.DEVNULL).strip()
+        return subprocess.check_output(arguments, universal_newlines=True, stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
         pass
 
 
+def get_owning_package(path):
+    output = get_command_stdout('pacman', '-Qoq', path)
+    if output is not None:
+        return output.strip()
+
+
 def get_package_download_url(name):
-    return subprocess.check_output(('pacman', '-Sp', name), universal_newlines=True).strip()
+    output = get_command_stdout('pacman', '-Sp', name)
+    if output is not None:
+        return output.strip()
 
 
 def download_package(name, path):
@@ -52,6 +59,9 @@ def main(arguments):
 
     # Get path to package if cached, otherwise download it
     download_url = get_package_download_url(package)
+    if not download_url:
+        argument_parser.error('Path appears to be part of foreign package')
+
     package_path = os.path.join(get_pacman_cache_path(), posixpath.basename(download_url))
     if not os.path.exists(package_path):
         print('Package not found in cache, downloading...')
