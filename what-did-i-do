@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+
+import argparse
+import configparser
+import os
+import posixpath
+import shlex
+import subprocess
+import tarfile
+import tempfile
+
+import urllib.request
+
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('-e', '--editor', default=os.getenv('EDITOR', os.getenv('VISUAL', None)))
+argument_parser.add_argument('path')
+
+DEFAULT_PACMAN_CACHE_PATH = '/var/cache/pacman/pkg/'
+PACMAN_CONF_PATH = '/etc/pacman.conf'
+
+
+def get_owning_package(path):
+    try:
+        return subprocess.check_output(('pacman', '-Qoq', path), universal_newlines=True,
+                                       stderr=subprocess.DEVNULL).strip()
+    except subprocess.CalledProcessError:
+        pass
+
+
+def get_package_download_url(name):
+    return subprocess.check_output(('pacman', '-Sp', name), universal_newlines=True).strip()
+
+
+def download_package(name, path):
+    url = get_package_download_url(name)
+    with urllib.request.urlopen(url) as response, open(path, 'wb') as file:
+        file.write(response.read())
+
+
+def get_pacman_cache_path():
+    config = configparser.ConfigParser(allow_no_value=True)
+    config.read(PACMAN_CONF_PATH)
+    return config.get('options', 'CacheDir', fallback=DEFAULT_PACMAN_CACHE_PATH)
+
+
+def main(arguments):
+    if not arguments.editor:
+        argument_parser.error('Could not determine editor')
+
+    package = get_owning_package(arguments.path)
+    if not package:
+        argument_parser.error('Could not determine owning package')
+
+    # Get path to package if cached, otherwise download it
+    download_url = get_package_download_url(package)
+    package_path = os.path.join(get_pacman_cache_path(), posixpath.basename(download_url))
+    if not os.path.exists(package_path):
+        print('Package not found in cache, downloading...')
+        package_path = tempfile.mkstemp()[1]
+        download_package(package, package_path)
+
+    # Extract target member to temporary directory
+    tar_file = tarfile.open(package_path)
+    member_path = os.path.relpath(arguments.path, '/')
+    file_descriptor, extraction_path = tempfile.mkstemp(os.path.basename(member_path))
+    with os.fdopen(file_descriptor, 'wb') as file:
+        member = tar_file.extractfile(member_path)
+        file.write(member.read())
+
+    # Open both files in the editor
+    subprocess.run(shlex.split(arguments.editor) + [arguments.path, extraction_path])
+
+
+if __name__ == '__main__':
+    arguments = argument_parser.parse_args()
+    main(arguments)

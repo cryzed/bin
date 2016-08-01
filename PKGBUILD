@@ -20,7 +20,8 @@ source=('vpn-whitelist-domains'
         'systemd-octor'
         'fix-openvpn'
         'fix-openvpn@.service'
-        'aur-auto-vote')
+        'aur-auto-vote'
+        'what-did-i-do')
 md5sums=('fb16012d160e9b948217e904c741bfa3'
          'd41d8cd98f00b204e9800998ecf8427e'
          '6cb4c2f54af73993d84c6a318e81d6e7'
@@ -36,7 +37,8 @@ md5sums=('fb16012d160e9b948217e904c741bfa3'
          '30ff20a49ef656a27e2a312feaa9c881'
          'e399c5c0721e2a48acc4168f6749af04'
          '020b54a9c478c2080034c73fa64dbb14'
-         '9b2c600c04e74399edd83875b60ad846')
+         '9b2c600c04e74399edd83875b60ad846'
+         'd11da767c84a90da2c07a539d218abbc')
 
 package() {
     usr_bin="$pkgdir/usr/bin"
@@ -49,6 +51,7 @@ package() {
     cp 'systemd-octor' "$usr_bin"
     cp 'fix-openvpn' "$usr_bin"
     cp 'aur-auto-vote' "$usr_bin"
+    cp 'what-did-i-do' "$usr_bin"
 
     etc="$pkgdir/etc"
     mkdir -p "$etc"
