@@ -148,22 +148,24 @@ address after re-establishing the tunnel.
 I really wanted to show my appreciation for the AUR packages that I am using, but am entirely too lazy to keep the list
 of voted-for packages up-to-date manually.
 
-    $ aur-auto-vote --help
-    usage: aur-auto-vote [-h] [--ignore IGNORE] [--unvote-all] [--delay DELAY]
-                         username
+```
+$ aur-auto-vote --help
+usage: aur-auto-vote [-h] [--ignore IGNORE] [--unvote-all] [--delay DELAY]
+                     username
 
-    positional arguments:
-      username
+positional arguments:
+  username
 
-    optional arguments:
-      -h, --help            show this help message and exit
-      --ignore IGNORE, -i IGNORE
-                            Regex for packages that should not be voted. Can be
-                            passed multiple times.
-      --unvote-all, -u      Unvote all voted-for packages, all other arguments are
-                            ignored.
-      --delay DELAY, -d DELAY
-                            Delay between voting actions (seconds).
+optional arguments:
+  -h, --help            show this help message and exit
+  --ignore IGNORE, -i IGNORE
+                        Regex for packages that should not be voted. Can be
+                        passed multiple times.
+  --unvote-all, -u      Unvote all voted-for packages, all other arguments are
+                        ignored.
+  --delay DELAY, -d DELAY
+                        Delay between voting actions (seconds).
+```
 
 When voting already voted-for packages will be automatically skipped. Local PKGBUILDs I usually prefix with my nick,
 i.e. `cryzed-` so I pass in `--ignore 'cryzed-.*'`. If you feel that your voted-for packages are completely outdated,
@@ -195,3 +197,30 @@ and uses `tar` to compress all those files into an archive with the current date
 Note that I have symlinked all XDG directories, i.e. "Documents", "Downloads", "Music" etc. to a different HDD to
 prevent unnecessary writes on my system SSD -- so when backing up the `/home` directories, tar will only backup the
 dotfiles and not automatically follow the symlinks. The resulting backup file is usually around ~10-12 GB in size.
+
+
+## what-did-i-do
+
+```
+$ what-did-i-do --help
+usage: what-did-i-do [-h] [-e EDITOR] path
+
+positional arguments:
+  path
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -e EDITOR, --editor EDITOR
+```
+
+This is useful for me when editing (configuration/backup) files which are part of installed packages. Often they are
+filled with comments and various examples configurations, however after figuring out my configuration I rarely want to
+keep all these around.
+
+Removing them to keep the file as clean as possible however, might be an issue when further modifications are needed at
+some later point in time -- all the reference examples are now missing, forcing you to either read the man
+page (even for trivial changes) or manually hunting down the package in your cache or online and checking out the
+original file.
+
+This script aims to save you these steps: simply run it with a path to a file and the local, as well as the original
+file, should both be opened in your configured editor (`EDITOR` or `VISUAL`).
