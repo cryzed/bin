@@ -16,7 +16,6 @@ source=('vpn-whitelist-domains'
         'restart-plasmashell'
         'backup-system'
         'backup-system.'{'service','timer','conf'}
-        'keep-process-alive'
         'systemd-octor'
         'fix-openvpn'
         'fix-openvpn@.service'
@@ -33,7 +32,6 @@ md5sums=('fb16012d160e9b948217e904c741bfa3'
          'f93789f6e9ceea3c6e512f6c40ea16e7'
          '01b6c960bac9538e620d9dd08991195a'
          '609e76c7a3fd1931085188a3726be480'
-         'de99f0c9afd92546b94fc2fb81c3e2b0'
          '30ff20a49ef656a27e2a312feaa9c881'
          'e399c5c0721e2a48acc4168f6749af04'
          '020b54a9c478c2080034c73fa64dbb14'
@@ -47,7 +45,6 @@ package() {
     cp 'warm-up-dns-resolver' "$usr_bin"
     cp 'restart-plasmashell' "$usr_bin"
     cp 'backup-system' "$usr_bin"
-    cp 'keep-process-alive' "$usr_bin"
     cp 'systemd-octor' "$usr_bin"
     cp 'fix-openvpn' "$usr_bin"
     cp 'aur-auto-vote' "$usr_bin"

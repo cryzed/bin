@@ -4,35 +4,10 @@ might be better ways to do some of the things I wrote these scripts for, or even
 didn't know about; if you think you know of either one please let me know.
 
 
-## keep-process-alive
-Unfortunately KRunner seems pretty unstable for me and crashes sometimes without any discernible reason. Manually
-restarting it is a pain, so I came up with this.
-
-```
-Usage:
-    keep-process-alive [SWITCHES] name
-
-Meta-switches
-    -h, --help                                 Prints this help message and quits
-    --help-all                                 Print help messages of all subcommands and quit
-    -v, --version                              Prints the program's version and quits
-
-Switches
-    --argument, -a VALUE:str                   Pass argument to process when (re)started; may be given multiple times
-    --check-zombie-interval, -i VALUE:int      Seconds between checking if the process has become a zombie; the default is 3
-```
-
-If a process with the same name already exists it will be monitored and the arguments that the existing instance were
-run with, will be used to restart the process when needed, otherwise the path to the executable will be determined using
-`which` and started with any passed arguments.
-
-If the process should become a zombie, it will be terminated using the `TERM` signal and restarted. If the process
-terminates for whatever reason it will be restarted.
-
-
 ## restart-plasmashell
 Sometimes the KDE Plasma shell starts displaying my wallpaper strangely (i.e. not at all) towards the bottom of my
 screen. When that happens I simply run this script to quickly restart the shell.
+
 
 ## vpn-whitelist-domain
 I am using NetworkManager and the NetworkManager-OpenVPN plugin. When connecting to my VPN provider, NetworkManager
