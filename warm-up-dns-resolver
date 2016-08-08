@@ -41,7 +41,7 @@ def get_firefox_domains(days):
         return domains
 
     database.init(candidates[0])
-    query = Place.select().order_by(-Place.last_visit_date)
+    query = Place.select().where(Place.last_visit_date).order_by(-Place.last_visit_date)
 
     # No history found
     latest = query.get()
