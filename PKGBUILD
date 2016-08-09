@@ -36,7 +36,7 @@ md5sums=('eb0aab81b02a28e3e308f8de39be1f93'
          'e399c5c0721e2a48acc4168f6749af04'
          '020b54a9c478c2080034c73fa64dbb14'
          '9b2c600c04e74399edd83875b60ad846'
-         'ffa9c52f99a279d01229061c99abf775')
+         '8940c60d9ae513956c129315f2e01aff')
 
 
 package() {

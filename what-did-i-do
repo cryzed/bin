@@ -11,7 +11,7 @@ import tempfile
 import urllib.request
 
 argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('-e', '--editor', default=os.getenv('EDITOR', os.getenv('VISUAL', None)))
+argument_parser.add_argument('--editor', default=os.getenv('EDITOR', os.getenv('VISUAL', None)))
 argument_parser.add_argument('path')
 
 DEFAULT_PACMAN_CACHE_PATH = '/var/cache/pacman/pkg/'
