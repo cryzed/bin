@@ -175,17 +175,16 @@ dotfiles and not automatically follow the symlinks. The resulting backup file is
 
 
 ## what-did-i-do
-
 ```
 $ what-did-i-do --help
-usage: what-did-i-do [-h] [-e EDITOR] path
+usage: what-did-i-do [-h] [--editor EDITOR] path
 
 positional arguments:
   path
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -e EDITOR, --editor EDITOR
+  -h, --help       show this help message and exit
+  --editor EDITOR
 ```
 
 This is useful for me when editing (configuration/backup) files which are part of installed packages. Often they are
