@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
+import subprocess
 import sys
 
-from plumbum import local
-
-WHITELIST_DOMAINS_PATH = '/etc/vpn-whitelist-domains/domains'
+WHITELIST_ADDRESSES_PATH = '/etc/vpn-whitelist.addresses'
+COMMAND = 'vpn-whitelist', '--file', WHITELIST_ADDRESSES_PATH
 
 
 def main(interface, action):
@@ -13,9 +13,9 @@ def main(interface, action):
         return
 
     if action == 'up':
-        local['vpn-whitelist-domains']('--file', WHITELIST_DOMAINS_PATH)
+        subprocess.run(COMMAND)
     elif action == 'down':
-        local['vpn-whitelist-domains']('--file', WHITELIST_DOMAINS_PATH, '--remove')
+        subprocess.run(COMMAND + ('--remove',))
 
 
 if __name__ == '__main__':

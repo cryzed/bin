@@ -43,7 +43,7 @@ def get_line_set(file):
 def main(arguments):
     gateway, output = arguments.gateway or determine_default_gateway()
     if not gateway:
-        argument_parser.error('Error: Could not determine default gateway:\n%s' % output)
+        argument_parser.error('could not determine default gateway:\n%s' % output)
 
     addresses = set(arguments.addresses)
     for path in (os.path.expanduser(p) for p in arguments.paths):
@@ -52,7 +52,7 @@ def main(arguments):
                 addresses = addresses.union(get_line_set(file))
 
     for address in addresses:
-        print(address, end=':\n')
+        print(address + ':')
         for ip in set(i[4][0] for i in socket.getaddrinfo(address, None)):
             if arguments.remove:
                 process = subprocess.run(('ip', 'route', 'del', ip, 'via', gateway), stdout=subprocess.PIPE,
