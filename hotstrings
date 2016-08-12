@@ -1,0 +1,210 @@
+#!/usr/bin/env python
+
+import argparse
+import collections
+import json
+import os
+
+import Xlib
+import Xlib.X
+import Xlib.XK
+import Xlib.display
+import Xlib.ext.record
+import Xlib.protocol
+
+Xlib.XK.load_keysym_group('xkb')
+
+RECORD_CONTEXT_ARGUMENTS = (
+    0,
+    (Xlib.ext.record.AllClients,),
+    ({
+         'core_requests': (0, 0),
+         'core_replies': (0, 0),
+         'ext_requests': (0, 0, 0, 0),
+         'ext_replies': (0, 0, 0, 0),
+         'delivered_events': (0, 0),
+         'device_events': (Xlib.X.KeyPress, Xlib.X.KeyRelease),
+         'errors': (0, 0),
+         'client_started': False,
+         'client_died': False
+     },)
+)
+MODIFIER_KEY_MASKS = {
+    'Shift': Xlib.X.ShiftMask,
+    'Lock': Xlib.X.LockMask,
+    'Control': Xlib.X.ControlMask,
+    'Alt': Xlib.X.Mod1Mask,
+    'Mod1': Xlib.X.Mod1Mask,
+    'Mod2': Xlib.X.Mod2Mask,
+    'Mod3': Xlib.X.Mod3Mask,
+    'Mod4': Xlib.X.Mod4Mask,
+    'Mod5': Xlib.X.Mod5Mask
+}
+BACKSPACE_CHARACTER = '\x08'
+SPECIAL_CHARACTERS = {
+    BACKSPACE_CHARACTER: Xlib.XK.XK_BackSpace
+}
+
+event_field_structure = Xlib.protocol.rq.EventField(None)
+
+
+def get_xdg_config_home():
+    xdg_config_home = os.getenv('XDG_CONFIG_HOME')
+    if xdg_config_home is not None and os.path.isabs(xdg_config_home):
+        return xdg_config_home
+
+    return os.path.expanduser('~/.config')
+
+
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('path', nargs='?', help='Path to JSON file containing hotstring definitions',
+                             default=os.path.join(get_xdg_config_home(), 'hotstrings.json'))
+
+
+def parse_event_fields(data, display):
+    while data:
+        event, data = event_field_structure.parse_binary_value(data, display, None, None)
+        yield event
+
+
+class RecordHandler:
+    def __init__(self, connection, record_connection, callback):
+        self.connection = connection
+        self.record_connection = record_connection
+        self.callback = callback
+
+        # Support for XK_ISO_Level3_Shift/AltGr:
+        self.alt_gr_pressed = False
+        self.alt_gr_keycodes = set(
+            i[0] for i in self.connection.keysym_to_keycodes(Xlib.XK.XK_ISO_Level3_Shift))
+
+    def get_modifier_index(self, state):
+        # None = 0, Shift = 1, Alt = 2, Alt + Shift = 3, AltGr = 4, AltGr + Shift = 5
+        pressed = {n: (state & m) == m for n, m in MODIFIER_KEY_MASKS.items()}
+        index = 0
+        if pressed['Shift']:
+            index += 1
+        if pressed['Alt']:
+            index += 2
+        if self.alt_gr_pressed:
+            index += 4
+
+        return index
+
+    def key_pressed(self, event):
+        # Manually keep track of AltGr state because it is not encoded in the event.state byte
+        if event.detail in self.alt_gr_keycodes:
+            self.alt_gr_pressed = True
+
+        keysym = self.connection.keycode_to_keysym(event.detail, self.get_modifier_index(event.state))
+        character = self.connection.lookup_string(keysym)
+        if character:
+            self.callback(character)
+
+    def key_released(self, event):
+        if event.detail in self.alt_gr_keycodes:
+            self.alt_gr_pressed = False
+
+    def __call__(self, reply):
+        if not reply.category == Xlib.ext.record.FromServer:
+            return
+
+        for event in parse_event_fields(reply.data, self.record_connection.display):
+            if event.type == Xlib.X.KeyPress:
+                self.key_pressed(event)
+            elif event.type == Xlib.X.KeyRelease:
+                self.key_released(event)
+
+
+class HotstringProcessor:
+    def __init__(self, hotstrings, connection, queue_size):
+        self.hotstrings = hotstrings
+        self.connection = connection
+        self.queue = collections.deque(maxlen=queue_size)
+        self.root_window = self.connection.screen().root
+
+    def string_to_keycodes(self, string_):
+        for character in string_:
+            keycodes = tuple(self.connection.keysym_to_keycodes(ord(character)))
+            keycode = keycodes[0] if keycodes else None
+            # Some characters can't be decoded using keysym_to_keycodes, so fall back to SPECIAL_CHARACTERS
+            if not keycode:
+                keysym = SPECIAL_CHARACTERS.get(character, None)
+                if not keysym:
+                    continue
+
+                keycodes = tuple(self.connection.keysym_to_keycodes(keysym))
+                keycode = keycodes[0] if keycodes else None
+            yield keycode
+
+    def send_keycode(self, keycode, focus):
+        arguments = dict(
+            detail=keycode[0],
+            time=Xlib.X.CurrentTime,
+            root=self.root_window,
+            window=focus,
+            child=Xlib.X.NONE,
+            root_x=0,
+            root_y=0,
+            event_x=0,
+            event_y=0,
+            state=keycode[1],
+            same_screen=1
+        )
+
+        press_event = Xlib.protocol.event.KeyPress(**arguments)
+        release_event = Xlib.protocol.event.KeyRelease(**arguments)
+        focus.send_event(press_event)
+        focus.send_event(release_event)
+
+    def send_keycodes(self, keycodes, focus):
+        for keycode in keycodes:
+            self.send_keycode(keycode, focus)
+
+        self.connection.flush()
+
+    def __call__(self, character):
+        if character == BACKSPACE_CHARACTER and self.queue:
+            self.queue.pop()
+        else:
+            self.queue.append(character)
+
+        queue_string = ''.join(self.queue)
+        focus = self.connection.get_input_focus().focus
+        backspace_keycode = tuple(self.string_to_keycodes(BACKSPACE_CHARACTER))
+        for hotstring, replacement in self.hotstrings.items():
+            if queue_string.endswith(hotstring):
+                self.send_keycodes(backspace_keycode * len(hotstring), focus)
+
+                # TODO: Send key release event for potential modifier used to type hotstring, this creates problems
+                # in some programs.
+                self.send_keycodes(self.string_to_keycodes(replacement), focus)
+                self.queue.clear()
+
+
+def main(arguments):
+    path = arguments.path
+    if not os.path.exists(path):
+        argument_parser.error(path + ': No such file or directory.')
+
+    connection = Xlib.display.Display()
+    record_connection = Xlib.display.Display()
+
+    if not record_connection.has_extension('RECORD'):
+        argument_parser.error('RECORD extension not found.')
+
+    with open(path) as file:
+        hotstrings = json.load(file)
+
+    if not hotstrings:
+        argument_parser.error('No hotstrings defined.')
+
+    record_context = record_connection.record_create_context(*RECORD_CONTEXT_ARGUMENTS)
+    hotstring_processor = HotstringProcessor(hotstrings, connection, max(len(k) for k in hotstrings.keys()))
+    record_handler = RecordHandler(connection, record_connection, hotstring_processor)
+    record_connection.record_enable_context(record_context, record_handler)
+
+
+if __name__ == '__main__':
+    arguments = argument_parser.parse_args()
+    main(arguments)

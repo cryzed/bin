@@ -6,7 +6,7 @@ url='https://github.com/cryzed/bin'
 license=('MIT')
 depends=('python' 'python-plumbum' 'python-peewee' 'lostfiles' 'systemd'
          'networkmanager' 'python-systemd' 'python-requests'
-         'python-beautifulsoup4' 'python-html5lib')
+         'python-beautifulsoup4' 'python-html5lib' 'python-xlib')
 backup=('etc/vpn-whitelist.addresses'
         'etc/backup-system.conf')
 source=('vpn-whitelist'
@@ -20,7 +20,8 @@ source=('vpn-whitelist'
         'fix-openvpn'
         'fix-openvpn@.service'
         'aur-auto-vote'
-        'what-did-i-do')
+        'what-did-i-do'
+        'hotstrings')
 md5sums=('eb0aab81b02a28e3e308f8de39be1f93'
          'd41d8cd98f00b204e9800998ecf8427e'
          'd1f2a15d7153d8d1586058914b52f2e8'
@@ -36,7 +37,8 @@ md5sums=('eb0aab81b02a28e3e308f8de39be1f93'
          'e399c5c0721e2a48acc4168f6749af04'
          '020b54a9c478c2080034c73fa64dbb14'
          '9b2c600c04e74399edd83875b60ad846'
-         '8940c60d9ae513956c129315f2e01aff')
+         '8940c60d9ae513956c129315f2e01aff'
+         '7194efe36f611abbc5e07b74602b9dd0')
 
 
 package() {
@@ -51,6 +53,7 @@ package() {
     cp 'fix-openvpn' "$usr_bin"
     cp 'aur-auto-vote' "$usr_bin"
     cp 'what-did-i-do' "$usr_bin"
+    cp 'hotstrings' "$usr_bin"
 
     # /etc
     etc="$pkgdir/etc"

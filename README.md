@@ -198,3 +198,26 @@ original file.
 
 This script aims to save you these steps: simply run it with a path to a file and the local, as well as the original
 file, should both be opened in your configured editor (`EDITOR` or `VISUAL`).
+
+
+## hotstrings
+```
+$ hotstrings --help
+usage: hotstrings [-h] [path]
+
+positional arguments:
+  path        Path to JSON file containing hotstring definitions
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+This script is a much lighter version of AutoKey, specifically the
+[AutoKey-py3](https://aur.archlinux.org/packages/autokey-py3/) fork. Since there was a recent update to the official
+[python-xlib](https://github.com/python-xlib/python-xlib) which breaks compatibility with the fork, and the fork also
+doesn't seem to be actively maintained anymore, I wanted to preemptively find another solution before AutoKey-py3
+eventually stops working entirely on my system.
+
+This pretty much implements only the functionality I actually use: hotstrings; basically you type an abbreviation and it
+is replaced with the actual content. Dependencies are Python 3 and the the official python-xlib or
+[LiuLang's fork](https://github.com/LiuLang/python3-xlib) which is used by AutoKey-py3.
