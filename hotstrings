@@ -4,6 +4,7 @@ import argparse
 import collections
 import json
 import os
+import sys
 
 import Xlib
 import Xlib.X
@@ -75,7 +76,7 @@ class RecordHandler:
         self.alt_gr_keycodes = set(
             i[0] for i in self.connection.keysym_to_keycodes(Xlib.XK.XK_ISO_Level3_Shift))
 
-    def get_modifier_index(self, state):
+    def get_modifier_state_index(self, state):
         # None = 0, Shift = 1, Alt = 2, Alt + Shift = 3, AltGr = 4, AltGr + Shift = 5
         pressed = {n: (state & m) == m for n, m in MODIFIER_KEY_MASKS.items()}
         index = 0
@@ -93,7 +94,7 @@ class RecordHandler:
         if event.detail in self.alt_gr_keycodes:
             self.alt_gr_pressed = True
 
-        keysym = self.connection.keycode_to_keysym(event.detail, self.get_modifier_index(event.state))
+        keysym = self.connection.keycode_to_keysym(event.detail, self.get_modifier_state_index(event.state))
         character = self.connection.lookup_string(keysym)
         if character:
             self.callback(character)
@@ -120,6 +121,38 @@ class HotstringProcessor:
         self.queue = collections.deque(maxlen=queue_size)
         self.root_window = self.connection.screen().root
 
+        self._default_key_press_event_arguments = dict(
+            time=Xlib.X.CurrentTime,
+            root=self.root_window,
+            child=Xlib.X.NONE,
+            root_x=0,
+            root_y=0,
+            event_x=0,
+            event_y=0,
+            same_screen=1
+        )
+        self._default_key_release_event_arguments = self._default_key_press_event_arguments
+
+    def _make_key_press_event(self, detail, state, window, **kwargs):
+        arguments = self._default_key_press_event_arguments.copy()
+        arguments.update(kwargs)
+        return Xlib.protocol.event.KeyPress(
+            detail=detail,
+            state=state,
+            window=window,
+            **arguments
+        )
+
+    def _make_key_release_event(self, detail, state, window, **kwargs):
+        arguments = self._default_key_release_event_arguments.copy()
+        arguments.update(kwargs)
+        return Xlib.protocol.event.KeyRelease(
+            detail=detail,
+            state=state,
+            window=window,
+            **arguments
+        )
+
     def string_to_keycodes(self, string_):
         for character in string_:
             code_point = ord(character)
@@ -134,29 +167,16 @@ class HotstringProcessor:
 
             yield keycode
 
-    def send_keycode(self, keycode, focus):
-        arguments = dict(
-            detail=keycode[0],
-            time=Xlib.X.CurrentTime,
-            root=self.root_window,
-            window=focus,
-            child=Xlib.X.NONE,
-            root_x=0,
-            root_y=0,
-            event_x=0,
-            event_y=0,
-            state=keycode[1],
-            same_screen=1
-        )
+    def type_keycode(self, keycode, window):
+        detail, state = keycode
+        press_event = self._make_key_press_event(detail, state, window)
+        release_event = self._make_key_release_event(detail, state, window)
+        window.send_event(press_event)
+        window.send_event(release_event)
 
-        press_event = Xlib.protocol.event.KeyPress(**arguments)
-        release_event = Xlib.protocol.event.KeyRelease(**arguments)
-        focus.send_event(press_event)
-        focus.send_event(release_event)
-
-    def send_keycodes(self, keycodes, focus):
+    def type_keycodes(self, keycodes, focus):
         for keycode in keycodes:
-            self.send_keycode(keycode, focus)
+            self.type_keycode(keycode, focus)
 
         self.connection.flush()
 
@@ -167,16 +187,15 @@ class HotstringProcessor:
             self.queue.append(character)
 
         queue_string = ''.join(self.queue)
-        focus = self.connection.get_input_focus().focus
         backspace_keycode = tuple(self.string_to_keycodes(BACKSPACE_CHARACTER))
+        window = self.connection.get_input_focus().focus
         for hotstring, replacement in self.hotstrings.items():
-            if queue_string.endswith(hotstring):
-                self.send_keycodes(backspace_keycode * len(hotstring), focus)
+            if not queue_string.endswith(hotstring):
+                continue
 
-                # TODO: Send key release event for potential modifier used to type hotstring, this creates problems
-                # in some programs.
-                self.send_keycodes(self.string_to_keycodes(replacement), focus)
-                self.queue.clear()
+            self.type_keycodes(backspace_keycode * len(hotstring), window)
+            self.type_keycodes(self.string_to_keycodes(replacement), window)
+            self.queue.clear()
 
 
 def main(arguments):
