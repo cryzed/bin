@@ -41,9 +41,6 @@ MODIFIER_KEY_MASKS = {
     'Mod5': Xlib.X.Mod5Mask
 }
 BACKSPACE_CHARACTER = '\x08'
-SPECIAL_CHARACTERS = {
-    BACKSPACE_CHARACTER: Xlib.XK.XK_BackSpace
-}
 
 event_field_structure = Xlib.protocol.rq.EventField(None)
 
@@ -125,16 +122,16 @@ class HotstringProcessor:
 
     def string_to_keycodes(self, string_):
         for character in string_:
-            keycodes = tuple(self.connection.keysym_to_keycodes(ord(character)))
-            keycode = keycodes[0] if keycodes else None
-            # Some characters can't be decoded using keysym_to_keycodes, so fall back to SPECIAL_CHARACTERS
-            if not keycode:
-                keysym = SPECIAL_CHARACTERS.get(character, None)
-                if not keysym:
-                    continue
+            code_point = ord(character)
 
-                keycodes = tuple(self.connection.keysym_to_keycodes(keysym))
-                keycode = keycodes[0] if keycodes else None
+            # See Xlib.XK.keysym_to_string
+            keycodes = tuple(self.connection.keysym_to_keycodes(code_point) or
+                             self.connection.keysym_to_keycodes(0xFF00 | code_point))
+            keycode = keycodes[0] if keycodes else None
+            if not keycode:
+                print('No keycode found for: %r.' % character, file=sys.stderr)
+                continue
+
             yield keycode
 
     def send_keycode(self, keycode, focus):
