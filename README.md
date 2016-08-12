@@ -218,6 +218,15 @@ This script is a much lighter version of AutoKey, specifically the
 doesn't seem to be actively maintained anymore, I wanted to preemptively find another solution before AutoKey-py3
 eventually stops working entirely on my system.
 
-This pretty much implements only the functionality I actually use: hotstrings; basically you type an abbreviation and it
-is replaced with the actual content. Dependencies are Python 3 and the the official python-xlib or
+This pretty much implements only the functionality I actually use: hotstrings; basically you type text and it is
+replaced with the actual content. Dependencies are Python 3 and the the official python-xlib or
 [LiuLang's fork](https://github.com/LiuLang/python3-xlib) which is used by AutoKey-py3.
+
+An example configuration file might look like this:
+```
+$ cat ~/.config/hotstrings.json 
+{
+    "first": "replacement 1",
+    "second": "replacement 2"
+}
+```
