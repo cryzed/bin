@@ -4,6 +4,7 @@ import argparse
 import collections
 import json
 import os
+import signal
 import sys
 
 import Xlib
@@ -29,15 +30,7 @@ RECORD_CONTEXT_ARGUMENTS = (
      },)
 )
 
-
-def get_xdg_config_home():
-    xdg_config_home = os.getenv('XDG_CONFIG_HOME')
-    if xdg_config_home is not None and os.path.isabs(xdg_config_home):
-        return xdg_config_home
-
-    return os.path.expanduser('~/.config')
-
-
+# Load xkb to access XK_ISO_Level3_Shift
 Xlib.XK.load_keysym_group('xkb')
 event_field = Xlib.protocol.rq.EventField(None)
 
@@ -48,8 +41,17 @@ def parse_event_fields(data, display):
         yield event
 
 
+def get_xdg_config_home():
+    xdg_config_home = os.getenv('XDG_CONFIG_HOME')
+    if xdg_config_home is not None and os.path.isabs(xdg_config_home):
+        return xdg_config_home
+
+    return os.path.expanduser('~/.config')
+
+
 argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('path', nargs='?', help='Path to JSON file containing hotstring definitions',
+argument_parser.add_argument('path', metavar='PATH', nargs='?',
+                             help='Path to JSON file containing hotstring definitions. Default: %(default)s',
                              default=os.path.join(get_xdg_config_home(), 'hotstrings.json'))
 
 
@@ -139,6 +141,7 @@ class HotstringProcessor:
         arguments.update(kwargs)
         return Xlib.protocol.event.KeyRelease(detail=detail, state=state, window=window, **arguments)
 
+    # TODO: Figure out a way to find keycodes not assigned in the current keyboard mapping
     def string_to_keycodes(self, string_):
         for character in string_:
             code_point = ord(character)
@@ -184,7 +187,7 @@ class HotstringProcessor:
 
 
 def main(arguments):
-    path = arguments.path
+    path = os.path.expanduser(arguments.path)
     if not os.path.exists(path):
         argument_parser.error(path + ': No such file or directory.')
 
@@ -192,7 +195,7 @@ def main(arguments):
     record_connection = Xlib.display.Display()
 
     if not record_connection.has_extension('RECORD'):
-        argument_parser.error('RECORD extension not found.')
+        argument_parser.error('X Record Extension Library not found.')
 
     with open(path) as file:
         hotstrings = json.load(file)
@@ -204,6 +207,17 @@ def main(arguments):
     # Only keep at maximum the amount of characters of the longest hotstring in the HotstringProcessor queue
     hotstring_processor = HotstringProcessor(hotstrings, connection, max(len(k) for k in hotstrings.keys()))
     record_handler = RecordHandler(connection, record_connection, hotstring_processor)
+
+    def clean_up(*args):
+        record_connection.record_free_context(record_context)
+        record_connection.close()
+        connection.close()
+        argument_parser.exit()
+
+    # Make sure to free structs and close connections
+    for signal_ in signal.SIGINT, signal.SIGTERM:
+        signal.signal(signal_, clean_up)
+
     record_connection.record_enable_context(record_context, record_handler)
 
 
