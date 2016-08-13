@@ -13,8 +13,6 @@ import Xlib.display
 import Xlib.ext.record
 import Xlib.protocol
 
-Xlib.XK.load_keysym_group('xkb')
-
 RECORD_CONTEXT_ARGUMENTS = (
     0,
     (Xlib.ext.record.AllClients,),
@@ -30,20 +28,6 @@ RECORD_CONTEXT_ARGUMENTS = (
          'client_died': False
      },)
 )
-MODIFIER_KEY_MASKS = {
-    'Shift': Xlib.X.ShiftMask,
-    'Lock': Xlib.X.LockMask,
-    'Control': Xlib.X.ControlMask,
-    'Alt': Xlib.X.Mod1Mask,
-    'Mod1': Xlib.X.Mod1Mask,
-    'Mod2': Xlib.X.Mod2Mask,
-    'Mod3': Xlib.X.Mod3Mask,
-    'Mod4': Xlib.X.Mod4Mask,
-    'Mod5': Xlib.X.Mod5Mask
-}
-BACKSPACE_CHARACTER = '\x08'
-
-event_field = Xlib.protocol.rq.EventField(None)
 
 
 def get_xdg_config_home():
@@ -54,9 +38,8 @@ def get_xdg_config_home():
     return os.path.expanduser('~/.config')
 
 
-argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('path', nargs='?', help='Path to JSON file containing hotstring definitions',
-                             default=os.path.join(get_xdg_config_home(), 'hotstrings.json'))
+Xlib.XK.load_keysym_group('xkb')
+event_field = Xlib.protocol.rq.EventField(None)
 
 
 def parse_event_fields(data, display):
@@ -65,7 +48,24 @@ def parse_event_fields(data, display):
         yield event
 
 
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('path', nargs='?', help='Path to JSON file containing hotstring definitions',
+                             default=os.path.join(get_xdg_config_home(), 'hotstrings.json'))
+
+
 class RecordHandler:
+    MODIFIER_KEY_MASKS = {
+        'Shift': Xlib.X.ShiftMask,
+        'Lock': Xlib.X.LockMask,
+        'Control': Xlib.X.ControlMask,
+        'Alt': Xlib.X.Mod1Mask,
+        'Mod1': Xlib.X.Mod1Mask,
+        'Mod2': Xlib.X.Mod2Mask,
+        'Mod3': Xlib.X.Mod3Mask,
+        'Mod4': Xlib.X.Mod4Mask,
+        'Mod5': Xlib.X.Mod5Mask
+    }
+
     def __init__(self, connection, record_connection, callback):
         self.connection = connection
         self.record_connection = record_connection
@@ -78,7 +78,7 @@ class RecordHandler:
 
     def get_modifier_state_index(self, state):
         # None = 0, Shift = 1, Alt = 2, Alt + Shift = 3, AltGr = 4, AltGr + Shift = 5
-        pressed = {n: (state & m) == m for n, m in MODIFIER_KEY_MASKS.items()}
+        pressed = {n: (state & m) == m for n, m in self.MODIFIER_KEY_MASKS.items()}
         index = 0
         if pressed['Shift']:
             index += 1
@@ -115,43 +115,29 @@ class RecordHandler:
 
 
 class HotstringProcessor:
+    BACKSPACE_CHARACTER = '\x08'
+
     def __init__(self, hotstrings, connection, queue_size):
         self.hotstrings = hotstrings
         self.connection = connection
         self.queue = collections.deque(maxlen=queue_size)
         self.root_window = self.connection.screen().root
 
-        self._default_key_press_event_arguments = dict(
-            time=Xlib.X.CurrentTime,
-            root=self.root_window,
-            child=Xlib.X.NONE,
-            root_x=0,
-            root_y=0,
-            event_x=0,
-            event_y=0,
-            same_screen=1
-        )
+        # These stay the same for all requests, so just keep a local copy
+        self._default_key_press_event_arguments = dict(time=Xlib.X.CurrentTime, root=self.root_window,
+                                                       child=Xlib.X.NONE, root_x=0, root_y=0, event_x=0, event_y=0,
+                                                       same_screen=1)
         self._default_key_release_event_arguments = self._default_key_press_event_arguments
 
-    def _make_key_press_event(self, detail, state, window, **kwargs):
+    def make_key_press_event(self, detail, state, window, **kwargs):
         arguments = self._default_key_press_event_arguments.copy()
         arguments.update(kwargs)
-        return Xlib.protocol.event.KeyPress(
-            detail=detail,
-            state=state,
-            window=window,
-            **arguments
-        )
+        return Xlib.protocol.event.KeyPress(detail=detail, state=state, window=window, **arguments)
 
-    def _make_key_release_event(self, detail, state, window, **kwargs):
+    def make_key_release_event(self, detail, state, window, **kwargs):
         arguments = self._default_key_release_event_arguments.copy()
         arguments.update(kwargs)
-        return Xlib.protocol.event.KeyRelease(
-            detail=detail,
-            state=state,
-            window=window,
-            **arguments
-        )
+        return Xlib.protocol.event.KeyRelease(detail=detail, state=state, window=window, **arguments)
 
     def string_to_keycodes(self, string_):
         for character in string_:
@@ -169,31 +155,30 @@ class HotstringProcessor:
 
     def type_keycode(self, keycode, window):
         detail, state = keycode
-        press_event = self._make_key_press_event(detail, state, window)
-        release_event = self._make_key_release_event(detail, state, window)
-        window.send_event(press_event)
-        window.send_event(release_event)
+        window.send_event(self.make_key_press_event(detail, state, window))
+        window.send_event(self.make_key_release_event(detail, state, window))
 
-    def type_keycodes(self, keycodes, focus):
+    def type_keycodes(self, keycodes, window):
         for keycode in keycodes:
-            self.type_keycode(keycode, focus)
+            self.type_keycode(keycode, window)
 
         self.connection.flush()
 
     def __call__(self, character):
-        if character == BACKSPACE_CHARACTER and self.queue:
+        if character == self.BACKSPACE_CHARACTER and self.queue:
             self.queue.pop()
         else:
             self.queue.append(character)
 
         queue_string = ''.join(self.queue)
-        backspace_keycode = tuple(self.string_to_keycodes(BACKSPACE_CHARACTER))
+        backspace = tuple(self.string_to_keycodes(self.BACKSPACE_CHARACTER))
         window = self.connection.get_input_focus().focus
         for hotstring, replacement in self.hotstrings.items():
             if not queue_string.endswith(hotstring):
                 continue
 
-            self.type_keycodes(backspace_keycode * len(hotstring), window)
+            # Remove typed hotstring before typing replacement
+            self.type_keycodes(backspace * len(hotstring), window)
             self.type_keycodes(self.string_to_keycodes(replacement), window)
             self.queue.clear()
 
@@ -216,6 +201,7 @@ def main(arguments):
         argument_parser.error('No hotstrings defined.')
 
     record_context = record_connection.record_create_context(*RECORD_CONTEXT_ARGUMENTS)
+    # Only keep at maximum the amount of characters of the longest hotstring in the HotstringProcessor queue
     hotstring_processor = HotstringProcessor(hotstrings, connection, max(len(k) for k in hotstrings.keys()))
     record_handler = RecordHandler(connection, record_connection, hotstring_processor)
     record_connection.record_enable_context(record_context, record_handler)
