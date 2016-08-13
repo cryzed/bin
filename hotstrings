@@ -75,8 +75,7 @@ class RecordHandler:
 
         # Support for XK_ISO_Level3_Shift/AltGr:
         self.alt_gr_pressed = False
-        self.alt_gr_keycodes = set(
-            i[0] for i in self.connection.keysym_to_keycodes(Xlib.XK.XK_ISO_Level3_Shift))
+        self.alt_gr_keycodes = set(i[0] for i in self.connection.keysym_to_keycodes(Xlib.XK.XK_ISO_Level3_Shift))
 
     def get_modifier_state_index(self, state):
         # None = 0, Shift = 1, Alt = 2, Alt + Shift = 3, AltGr = 4, AltGr + Shift = 5
