@@ -106,13 +106,14 @@ class RecordHandler:
             self.alt_gr_pressed = False
 
     def __call__(self, reply):
+        # Ignore all replies that can't be parsed by parse_event_fields
         if not reply.category == Xlib.ext.record.FromServer:
             return
 
         for event in parse_event_fields(reply.data, self.record_connection.display):
             if event.type == Xlib.X.KeyPress:
                 self.key_pressed(event)
-            elif event.type == Xlib.X.KeyRelease:
+            else:
                 self.key_released(event)
 
 
@@ -180,6 +181,7 @@ class HotstringProcessor:
             if not queue_string.endswith(hotstring):
                 continue
 
+            print('Hotstring "%s" detected.' % hotstring)
             # Remove typed hotstring before typing replacement
             self.type_keycodes(backspace * len(hotstring), window)
             self.type_keycodes(self.string_to_keycodes(replacement), window)
@@ -218,6 +220,7 @@ def main(arguments):
     for signal_ in signal.SIGINT, signal.SIGTERM:
         signal.signal(signal_, clean_up)
 
+    print('Listening for hotstrings...')
     record_connection.record_enable_context(record_context, record_handler)
 
 
