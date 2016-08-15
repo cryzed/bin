@@ -20,7 +20,7 @@ source=('vpn-whitelist'
         'fix-openvpn'
         'fix-openvpn@.service'
         'aur-auto-vote'
-        'what-did-i-do'
+        'defaults'
         'hotstrings')
 md5sums=('eb0aab81b02a28e3e308f8de39be1f93'
          'd41d8cd98f00b204e9800998ecf8427e'
@@ -52,7 +52,7 @@ package() {
     cp 'systemd-octor' "$usr_bin"
     cp 'fix-openvpn' "$usr_bin"
     cp 'aur-auto-vote' "$usr_bin"
-    cp 'what-did-i-do' "$usr_bin"
+    cp 'defaults' "$usr_bin"
     cp 'hotstrings' "$usr_bin"
 
     # /etc

@@ -174,10 +174,10 @@ prevent unnecessary writes on my system SSD -- so when backing up the `/home` di
 dotfiles and not automatically follow the symlinks. The resulting backup file is usually around ~10-12 GB in size.
 
 
-## what-did-i-do
+## defaults
 ```
-$ what-did-i-do --help
-usage: what-did-i-do [-h] [--editor EDITOR] path
+$ defaults --help
+usage: defaults [-h] [--editor EDITOR] path
 
 positional arguments:
   path
