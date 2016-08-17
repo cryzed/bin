@@ -150,6 +150,8 @@ class HotstringProcessor:
             keycodes = tuple(self.connection.keysym_to_keycodes(code_point) or
                              self.connection.keysym_to_keycodes(0xFF00 | code_point))
             keycode = keycodes[0] if keycodes else None
+
+            # TODO: Remap missing characters to available keycodes
             if not keycode:
                 print('No keycode found for: %r.' % character, file=sys.stderr)
                 continue
