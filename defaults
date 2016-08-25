@@ -4,6 +4,7 @@ import argparse
 import collections
 import configparser
 import glob
+import itertools
 import os
 import posixpath
 import shlex
@@ -19,7 +20,7 @@ EXIT_FAILURE = 1
 DEFAULT_PACMAN_CACHE_PATH = '/var/cache/pacman/pkg/'
 PACMAN_CONF_PATH = '/etc/pacman.conf'
 MAKEPKG_CONF_PATH = '/etc/makepkg.conf'
-PACKAGE_FILE_NAME_FORMAT = '{name}-{version}-*{pkgext}'
+PACKAGE_FILE_NAME_GLOB_FORMAT = '{name}-{version}-*{pkgext}'
 CHUNK_SIZE = 1048576
 DESCRIPTION = '''Inspect the original version of files belonging to installed packages.
 
@@ -81,10 +82,10 @@ def download_package(name, path, chunk_size=CHUNK_SIZE):
                 progress_bar.update(chunk_size)
 
 
-def get_pacman_cache_path():
+def get_pacman_cache_paths():
     config = configparser.ConfigParser(allow_no_value=True)
     config.read(PACMAN_CONF_PATH)
-    return config.get('options', 'CacheDir', fallback=DEFAULT_PACMAN_CACHE_PATH)
+    return shlex.split(config.get('options', 'CacheDir', fallback=DEFAULT_PACMAN_CACHE_PATH))
 
 
 # Naive and incomplete, but good enough to get access to most important variables
@@ -116,15 +117,18 @@ def main(arguments):
 
     # Try to find package in pacman's cache directory
     makepkg_conf = get_makepkg_conf()
-    package_file_name = PACKAGE_FILE_NAME_FORMAT.format(
+    package_file_name_glob = PACKAGE_FILE_NAME_GLOB_FORMAT.format(
         name=package.name, version=package.version, pkgext=makepkg_conf['PKGEXT'])
-    pacman_package_glob = os.path.join(glob.escape(get_pacman_cache_path()), package_file_name)
+
+    pacman_package_globs = tuple(os.path.join(glob.escape(p), package_file_name_glob) for p in get_pacman_cache_paths())
+    # Flatten glob results to a single tuple
+    pacman_package_paths = tuple(p for p in itertools.chain(*(glob.glob(g) for g in pacman_package_globs)))
 
     # Try to find package in makepkg's package destination directory
     makepkg_pkgdest = makepkg_conf.get('PKGDEST')
-    makepkg_package_glob = os.path.join(glob.escape(makepkg_pkgdest), package_file_name) if makepkg_pkgdest else ''
+    makepkg_package_glob = os.path.join(glob.escape(makepkg_pkgdest), package_file_name_glob) if makepkg_pkgdest else ''
 
-    package_paths = glob.glob(pacman_package_glob) or glob.glob(makepkg_package_glob)
+    package_paths = pacman_package_paths or glob.glob(makepkg_package_glob)
     if package_paths:
         package_path = package_paths[0]
     else:
