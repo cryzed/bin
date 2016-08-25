@@ -4,10 +4,8 @@ pkgrel=1
 arch=('any')
 url='https://github.com/cryzed/bin'
 license=('MIT')
-depends=('python' 'python-plumbum' 'python-peewee' 'lostfiles' 'systemd'
-         'networkmanager' 'python-systemd' 'python-requests'
-         'python-beautifulsoup4' 'python-html5lib' 'python-xlib'
-         'python-tqdm')
+depends=('python' 'python-plumbum' 'python-peewee' 'lostfiles' 'systemd' 'networkmanager' 'python-systemd'
+         'python-requests' 'python-beautifulsoup4' 'python-html5lib' 'python-xlib' 'python-tqdm')
 backup=('etc/vpn-whitelist.addresses'
         'etc/backup-system.conf')
 source=('vpn-whitelist'
@@ -23,10 +21,10 @@ source=('vpn-whitelist'
         'aur-auto-vote'
         'defaults'
         'hotstrings')
-md5sums=('635cb9bb5a1495b4a624fba97d60485d'
+md5sums=('34b14aeeb7b83498b997f69b4c72a5e8'
          'd41d8cd98f00b204e9800998ecf8427e'
          'daee1dc2923f6c73421fee9b06072f88'
-         '451f160c462c31a66d72f726b06e7003'
+         '9c071c22393d8ba9d1c11021ae08a43c'
          '2a6b37cd45fb5a2c2575f7570940f1dc'
          'cbf72293797013c3e7c1cda4dc5d7155'
          '4e4ad52e9b431121ba2453f73863a42d'
@@ -35,10 +33,10 @@ md5sums=('635cb9bb5a1495b4a624fba97d60485d'
          '01b6c960bac9538e620d9dd08991195a'
          '609e76c7a3fd1931085188a3726be480'
          '13769a58d4ca28eb6a9c46b2b195b3ab'
-         '751668cac1515d82334956a9b3311730'
+         'c3e29ec92612aff3f677340a114afed3'
          '020b54a9c478c2080034c73fa64dbb14'
-         'a7255485bdaa87bbea59559cce69a3b8'
-         'a19a78ce383fdf4c5ac212df22f78b62'
+         '950db6dee8573be90c3603994c80d91e'
+         '677019604d61971296430407b9b95aad'
          '785d270baac91af36ad6611994d23579')
 
 

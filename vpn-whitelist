@@ -11,11 +11,11 @@ DEFAULT_WHITELIST_ADDRESSES_PATH = '/etc/vpn-whitelist.addresses'
 
 argument_parser = argparse.ArgumentParser()
 argument_parser.add_argument('addresses', nargs='*')
-argument_parser.add_argument('--remove', action='store_true', help='Remove addresses from whitelist')
+argument_parser.add_argument('--remove', action='store_true', help='Remove addresses from whitelist.')
 argument_parser.add_argument('--file', dest='paths', metavar='PATH', nargs='*', default=[],
-                             help='Paths to files containing addresses')
+                             help='Paths to files containing addresses.')
 argument_parser.add_argument('--gateway', help=('Specify the gateway used to bypass the VPN. If not set, the script '
-                                                'will attempt to determine the default gateway'))
+                                                'will attempt to determine the default gateway.'))
 
 
 def determine_default_gateway():
@@ -72,8 +72,7 @@ def main(arguments):
                 if process.returncode == 0:
                     print('  Removed', ip, 'from whitelist')
                 else:
-                    print('  Failed to remove %s from whitelist: %s' % (ip, process.stderr.strip()),
-                          file=sys.stderr)
+                    print('  Failed to remove %s from whitelist: %s' % (ip, process.stderr.strip()), file=sys.stderr)
             else:
                 process = subprocess.run(('ip', 'route', 'add', ip, 'via', gateway), stdout=subprocess.PIPE,
                                          stderr=subprocess.PIPE, universal_newlines=True)

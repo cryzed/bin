@@ -10,14 +10,6 @@ import time
 import bs4
 import requests
 
-argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('username')
-argument_parser.add_argument('--ignore', '-i', action='append', default=[],
-                             help='Regex for packages that should not be voted. Can be passed multiple times.')
-argument_parser.add_argument('--unvote-all', '-u', action='store_true',
-                             help='Unvote all voted-for packages, all other arguments are ignored.')
-argument_parser.add_argument('--delay', '-d', type=float, default=0, help='Delay between voting actions (seconds).')
-
 EXIT_FAILURE = 1
 LOGIN_URL = 'https://aur.archlinux.org/login'
 SEARCH_URL_TEMPLATE = 'https://aur.archlinux.org/packages/?O=%d&SB=w&SO=d&PP=250&do_Search=Go'
@@ -25,6 +17,14 @@ PACKAGES_URL = 'https://aur.archlinux.org/packages/'
 VOTE_URL_TEMPLATE = 'https://aur.archlinux.org/pkgbase/%s/vote/'
 UNVOTE_URL_TEMPLATE = 'https://aur.archlinux.org/pkgbase/%s/unvote/'
 PACKAGES_PER_PAGE = 250
+
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('username')
+argument_parser.add_argument('--ignore', '-i', action='append', default=[],
+                             help='Regex for packages that should not be voted. Can be passed multiple times.')
+argument_parser.add_argument('--unvote-all', '-u', action='store_true',
+                             help='Unvote all voted-for packages, all other arguments are ignored.')
+argument_parser.add_argument('--delay', '-d', type=float, default=0, help='Delay between voting actions (seconds).')
 
 Package = collections.namedtuple(
     'Package', ('name', 'version', 'votes', 'popularity', 'voted', 'notify', 'description', 'maintainer')

@@ -9,6 +9,8 @@ from datetime import datetime, timedelta
 
 import peewee
 
+MOZILLA_FIREFOX_PLACES_SQLITE_GLOB = '~/.mozilla/firefox/*.default/places.sqlite'
+
 argument_parser = argparse.ArgumentParser()
 argument_parser.add_argument('domains', nargs='*')
 argument_parser.add_argument('--file', dest='paths', metavar='PATH', nargs='+', default=[],
@@ -17,7 +19,7 @@ argument_parser.add_argument('--use-firefox', action='store_true', help="Use dom
 argument_parser.add_argument('--days', type=int, default=7,
                              help='Use domains of history up to n days before the last made entry.')
 
-MOZILLA_FIREFOX_PLACES_SQLITE_GLOB = '~/.mozilla/firefox/*.default/places.sqlite'
+# Initialize database later in get_firefox_domains
 database = peewee.SqliteDatabase(None)
 
 

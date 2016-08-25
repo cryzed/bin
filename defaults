@@ -15,17 +15,17 @@ import urllib.request
 
 import tqdm
 
-argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('--editor', default=os.getenv('EDITOR', os.getenv('VISUAL')))
-argument_parser.add_argument('--stdout', action='store_true')
-argument_parser.add_argument('path')
-
+EXIT_FAILURE = 1
 DEFAULT_PACMAN_CACHE_PATH = '/var/cache/pacman/pkg/'
 PACMAN_CONF_PATH = '/etc/pacman.conf'
 MAKEPKG_CONF_PATH = '/etc/makepkg.conf'
 PACKAGE_FILE_NAME_FORMAT = '{name}-{version}-*{pkgext}'
 CHUNK_SIZE = 1048576
-EXIT_FAILURE = 1
+
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('--editor', default=os.getenv('EDITOR', os.getenv('VISUAL')))
+argument_parser.add_argument('--stdout', action='store_true')
+argument_parser.add_argument('path')
 
 OwningPackage = collections.namedtuple('OwningPackage', ('name', 'version'))
 
