@@ -3,8 +3,7 @@
 import subprocess
 import sys
 
-WHITELIST_ADDRESSES_PATH = '/etc/vpn-whitelist.addresses'
-COMMAND = 'vpn-whitelist', '--file', WHITELIST_ADDRESSES_PATH
+COMMAND = 'vpn-whitelist',
 
 
 def main(interface, action):

@@ -6,12 +6,11 @@ import itertools
 import json
 import os
 import subprocess
-import sys
 import textwrap
 
 argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('--destination', default='list-unit-files.json', help='Change destination of output file')
-argument_parser.add_argument('--compare', nargs=2, help='Compare first output to second output')
+argument_parser.add_argument('--destination', default='list-unit-files.json', help='Change destination of output file.')
+argument_parser.add_argument('--compare', nargs=2, help='Compare first output to second output.')
 
 
 def compare(a_path, b_path):
@@ -53,5 +52,5 @@ def main(arguments):
 
 
 if __name__ == '__main__':
-    arguments = argument_parser.parse_args(sys.argv[1:])
+    arguments = argument_parser.parse_args()
     main(arguments)

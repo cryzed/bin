@@ -6,10 +6,13 @@ import socket
 import subprocess
 import sys
 
+EXIT_FAILURE = 1
+DEFAULT_WHITELIST_ADDRESSES_PATH = '/etc/vpn-whitelist.addresses'
+
 argument_parser = argparse.ArgumentParser()
 argument_parser.add_argument('addresses', nargs='*')
 argument_parser.add_argument('--remove', action='store_true', help='Remove addresses from whitelist')
-argument_parser.add_argument('--file', dest='paths', metavar='PATH', nargs='+', default=[],
+argument_parser.add_argument('--file', dest='paths', metavar='PATH', nargs='*', default=[],
                              help='Paths to files containing addresses')
 argument_parser.add_argument('--gateway', help=('Specify the gateway used to bypass the VPN. If not set, the script '
                                                 'will attempt to determine the default gateway'))
@@ -24,7 +27,7 @@ def determine_default_gateway():
     # Return first default gateway found that isn't a TUN device. This doesn't cover all cases, but works for my OpenVPN
     # configuration.
     for line in output.splitlines():
-        if line.startswith('default via') and 'dev tun' not in line:
+        if line.startswith('default via'):
             return line.split('default via')[1].split(None, 1)[0], output
 
     return None, output
@@ -43,15 +46,23 @@ def get_line_set(file):
 def main(arguments):
     gateway, output = arguments.gateway or determine_default_gateway()
     if not gateway:
-        argument_parser.error('could not determine default gateway:\n%s' % output)
+        argument_parser.exit(EXIT_FAILURE, 'Could not determine default gateway:\n%s' % output)
 
     addresses = set(arguments.addresses)
+
+    # If no addresses were given and no files specified, attempt to load addresses from the default whitelist
+    if not addresses and not arguments.paths:
+        arguments.paths.append(DEFAULT_WHITELIST_ADDRESSES_PATH)
+
     for path in (os.path.expanduser(p) for p in arguments.paths):
         if os.path.exists(path):
             with open(path) as file:
-                addresses = addresses.union(get_line_set(file))
+                lines = get_line_set(file)
 
-    for address in addresses:
+            addresses = addresses.union(lines)
+
+    address_high = len(addresses) - 1
+    for index, address in enumerate(addresses):
         print(address + ':')
         for ip in set(i[4][0] for i in socket.getaddrinfo(address, None)):
             if arguments.remove:
@@ -71,9 +82,11 @@ def main(arguments):
                     print('  Added', ip, 'to whitelist')
                 else:
                     print('  Failed to whitelist %s: %s' % (ip, process.stderr.strip()), file=sys.stderr)
-        print()
+
+        if index != address_high:
+            print()
 
 
 if __name__ == '__main__':
-    arguments = argument_parser.parse_args(sys.argv[1:])
+    arguments = argument_parser.parse_args()
     main(arguments)

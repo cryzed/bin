@@ -23,23 +23,23 @@ source=('vpn-whitelist'
         'aur-auto-vote'
         'defaults'
         'hotstrings')
-md5sums=('eb0aab81b02a28e3e308f8de39be1f93'
+md5sums=('635cb9bb5a1495b4a624fba97d60485d'
          'd41d8cd98f00b204e9800998ecf8427e'
-         'd1f2a15d7153d8d1586058914b52f2e8'
-         '76087fa6e8c900fd164abe4dbc981892'
+         'daee1dc2923f6c73421fee9b06072f88'
+         '451f160c462c31a66d72f726b06e7003'
          '2a6b37cd45fb5a2c2575f7570940f1dc'
          'cbf72293797013c3e7c1cda4dc5d7155'
          '4e4ad52e9b431121ba2453f73863a42d'
-         'f03a77e8efd80b00cf8672775f783e08'
+         'f5096c603ce533fe31e5093ac7e3541d'
          'f93789f6e9ceea3c6e512f6c40ea16e7'
          '01b6c960bac9538e620d9dd08991195a'
          '609e76c7a3fd1931085188a3726be480'
-         '30ff20a49ef656a27e2a312feaa9c881'
-         'e399c5c0721e2a48acc4168f6749af04'
+         '13769a58d4ca28eb6a9c46b2b195b3ab'
+         '751668cac1515d82334956a9b3311730'
          '020b54a9c478c2080034c73fa64dbb14'
-         '9b2c600c04e74399edd83875b60ad846'
+         'a7255485bdaa87bbea59559cce69a3b8'
          'a19a78ce383fdf4c5ac212df22f78b62'
-         '125643c090050b8372da0e96bf737504')
+         '785d270baac91af36ad6611994d23579')
 
 
 package() {

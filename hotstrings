@@ -14,6 +14,7 @@ import Xlib.display
 import Xlib.ext.record
 import Xlib.protocol
 
+EXIT_FAILURE = 1
 RECORD_CONTEXT_ARGUMENTS = (
     0,
     (Xlib.ext.record.AllClients,),
@@ -192,19 +193,19 @@ class HotstringProcessor:
 def main(arguments):
     path = os.path.expanduser(arguments.path)
     if not os.path.exists(path):
-        argument_parser.error(path + ': No such file or directory.')
+        argument_parser.exit(EXIT_FAILURE, path + ': No such file or directory.\n')
 
     connection = Xlib.display.Display()
     record_connection = Xlib.display.Display()
 
     if not record_connection.has_extension('RECORD'):
-        argument_parser.error('X Record Extension Library not found.')
+        argument_parser.exit(EXIT_FAILURE, 'X Record Extension Library not found.\n')
 
     with open(path) as file:
         hotstrings = json.load(file)
 
     if not hotstrings:
-        argument_parser.error('No hotstrings defined.')
+        argument_parser.exit(EXIT_FAILURE, 'No hotstrings defined.\n')
 
     record_context = record_connection.record_create_context(*RECORD_CONTEXT_ARGUMENTS)
     # Only keep at maximum the amount of characters of the longest hotstring in the HotstringProcessor queue
