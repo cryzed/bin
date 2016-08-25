@@ -6,7 +6,8 @@ url='https://github.com/cryzed/bin'
 license=('MIT')
 depends=('python' 'python-plumbum' 'python-peewee' 'lostfiles' 'systemd'
          'networkmanager' 'python-systemd' 'python-requests'
-         'python-beautifulsoup4' 'python-html5lib' 'python-xlib')
+         'python-beautifulsoup4' 'python-html5lib' 'python-xlib'
+         'python-tqdm')
 backup=('etc/vpn-whitelist.addresses'
         'etc/backup-system.conf')
 source=('vpn-whitelist'
@@ -37,7 +38,7 @@ md5sums=('eb0aab81b02a28e3e308f8de39be1f93'
          'e399c5c0721e2a48acc4168f6749af04'
          '020b54a9c478c2080034c73fa64dbb14'
          '9b2c600c04e74399edd83875b60ad846'
-         '8940c60d9ae513956c129315f2e01aff'
+         'a7d0fce620d513ac61330fae01f7433a'
          '125643c090050b8372da0e96bf737504')
 
 

@@ -1,21 +1,33 @@
 #!/usr/bin/env python
 
 import argparse
+import collections
 import configparser
+import glob
 import os
 import posixpath
 import shlex
 import subprocess
+import sys
 import tarfile
 import tempfile
 import urllib.request
 
+import tqdm
+
 argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('--editor', default=os.getenv('EDITOR', os.getenv('VISUAL', None)))
+argument_parser.add_argument('--editor', default=os.getenv('EDITOR', os.getenv('VISUAL')))
+argument_parser.add_argument('--stdout', action='store_true')
 argument_parser.add_argument('path')
 
 DEFAULT_PACMAN_CACHE_PATH = '/var/cache/pacman/pkg/'
 PACMAN_CONF_PATH = '/etc/pacman.conf'
+MAKEPKG_CONF_PATH = '/etc/makepkg.conf'
+PACKAGE_FILE_NAME_FORMAT = '{name}-{version}-*{pkgext}'
+CHUNK_SIZE = 1048576
+EXIT_FAILURE = 1
+
+OwningPackage = collections.namedtuple('OwningPackage', ('name', 'version'))
 
 
 def get_command_stdout(*arguments):
@@ -26,9 +38,11 @@ def get_command_stdout(*arguments):
 
 
 def get_owning_package(path):
-    output = get_command_stdout('pacman', '-Qoq', path)
-    if output is not None:
-        return output.strip()
+    output = get_command_stdout('pacman', '-Qo', path)
+    if output is None:
+        return
+
+    return OwningPackage(*output.rsplit(None, 2)[1:])
 
 
 def get_package_download_url(name):
@@ -37,10 +51,20 @@ def get_package_download_url(name):
         return output.strip()
 
 
-def download_package(name, path):
+def read_chunks(file, size=CHUNK_SIZE):
+    chunk = file.read(size)
+    while chunk:
+        yield chunk
+        chunk = file.read(size)
+
+
+def download_package(name, path, chunk_size=CHUNK_SIZE):
     url = get_package_download_url(name)
     with urllib.request.urlopen(url) as response, open(path, 'wb') as file:
-        file.write(response.read())
+        with tqdm.tqdm(desc=posixpath.basename(response.url), total=response.length, unit_scale=True) as progress_bar:
+            for chunk in read_chunks(response, chunk_size):
+                file.write(chunk)
+                progress_bar.update(chunk_size)
 
 
 def get_pacman_cache_path():
@@ -49,32 +73,69 @@ def get_pacman_cache_path():
     return config.get('options', 'CacheDir', fallback=DEFAULT_PACMAN_CACHE_PATH)
 
 
+# Very naive, but enough to get access to PKGDEST.
+def get_makepkg_conf():
+    variables = {}
+    with open(MAKEPKG_CONF_PATH) as file:
+        for line in (l.strip() for l in file if not l.startswith('#')):
+            parts = line.split('=', 1)
+            if len(parts) > 1:
+                key, value = parts
+
+                # Only strip first and last character if it's a quote character
+                first_character = value[0] if value else None
+                variables[key] = value[1:-1] if first_character in '\'"' else value
+
+    return variables
+
+
 def main(arguments):
-    if not arguments.editor:
-        argument_parser.error('Could not determine editor')
+    if not arguments.stdout and not arguments.editor:
+        argument_parser.exit(EXIT_FAILURE, 'Could not determine editor.\n')
 
     package = get_owning_package(arguments.path)
     if not package:
-        argument_parser.error('Could not determine owning package')
+        argument_parser.exit(EXIT_FAILURE, 'Could not determine owning package.\n')
 
-    # Get path to package if cached, otherwise download it
-    download_url = get_package_download_url(package)
-    if not download_url:
-        argument_parser.error('Path appears to be part of foreign package')
+    # Try to find package in pacman's cache directory
+    makepkg_conf = get_makepkg_conf()
+    package_file_name = PACKAGE_FILE_NAME_FORMAT.format(
+        name=package.name, version=package.version, pkgext=makepkg_conf['PKGEXT'])
+    pacman_package_glob = os.path.join(glob.escape(get_pacman_cache_path()), package_file_name)
 
-    package_path = os.path.join(get_pacman_cache_path(), posixpath.basename(download_url))
-    if not os.path.exists(package_path):
-        print('Package not found in cache, downloading...')
+    # Try to find package in makepkg's package destination directory
+    makepkg_pkgdest = makepkg_conf.get('PKGDEST')
+    makepkg_package_glob = os.path.join(glob.escape(makepkg_pkgdest), package_file_name) if makepkg_pkgdest else ''
+
+    # Package doesn't seem to be saved locally, attempt to find the download URL from the current mirrors
+    package_paths = glob.glob(pacman_package_glob) or glob.glob(makepkg_package_glob)
+    if package_paths:
+        package_path = package_paths[0]
+    else:
+        download_url = get_package_download_url(package.name)
+        if not download_url:
+            argument_parser.exit(
+                EXIT_FAILURE, 'Could not find locally saved owning package or determine download URL.\n')
+
+        # Write to stderr so --stdout can be used to pipe binary output directly into a file
+        print('Package not found in cache, downloading...', file=sys.stderr)
         package_path = tempfile.mkstemp()[1]
-        download_package(package, package_path)
+        download_package(package.name, package_path)
 
     # Extract target member to temporary directory
-    tar_file = tarfile.open(package_path)
+    package_file = tarfile.open(package_path)
     member_path = os.path.relpath(arguments.path, '/')
+
+    member_file = package_file.extractfile(member_path)
+    if arguments.stdout:
+        for chunk in read_chunks(member_file):
+            sys.stdout.buffer.write(chunk)
+        return
+
     file_descriptor, extraction_path = tempfile.mkstemp(os.path.basename(member_path))
     with os.fdopen(file_descriptor, 'wb') as file:
-        member = tar_file.extractfile(member_path)
-        file.write(member.read())
+        for chunk in read_chunks(member_file):
+            file.write(chunk)
 
     # Open both files in the editor
     subprocess.run(shlex.split(arguments.editor) + [arguments.path, extraction_path])
