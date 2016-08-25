@@ -185,7 +185,7 @@ If the editor is not specified using --editor, the environment variables EDIT
 and VISUAL will be used; alternatively --stdout can be used to pipe the original
 file's contents directly to stdout.
 
-Files are searched for in packages located in the "CacheDir" directory specified
+Files are searched for in packages located in the "CacheDir" directories specified
 in /etc/pacman.conf (default: /var/cache/pacman/pkg/) and in the "PKGDEST"
 directory specified in /etc/makepkg.conf, if defined. Defaults will only work
 with foreign packages, if the "PKGDEST" directory is specified.
