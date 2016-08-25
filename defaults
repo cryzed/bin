@@ -82,9 +82,9 @@ def get_makepkg_conf():
             if len(parts) > 1:
                 key, value = parts
 
-                # Only strip first and last character if it's a quote character
-                first_character = value[0] if value else None
-                variables[key] = value[1:-1] if first_character in '\'"' else value
+                # Parse the value using shell-like syntax
+                parts = shlex.split(value)
+                variables[key] = parts[0] if parts else ''
 
     return variables
 
