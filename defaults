@@ -21,9 +21,23 @@ PACMAN_CONF_PATH = '/etc/pacman.conf'
 MAKEPKG_CONF_PATH = '/etc/makepkg.conf'
 PACKAGE_FILE_NAME_FORMAT = '{name}-{version}-*{pkgext}'
 CHUNK_SIZE = 1048576
+DESCRIPTION = '''Inspect the original version of files belonging to installed packages.
 
-argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('--editor', default=os.getenv('EDITOR', os.getenv('VISUAL')))
+If the editor is not specified using --editor, the environment variables EDIT
+and VISUAL will be used; alternatively --stdout can be used to pipe the original
+file's contents directly to stdout.
+
+Files are searched for in packages located in the "CacheDir" directory specified
+in /etc/pacman.conf (default: /var/cache/pacman/pkg/) and in the "PKGDEST"
+directory specified in /etc/makepkg.conf, if defined. Defaults will only work
+with foreign packages, if the "PKGDEST" directory is specified.
+
+If the package can't be found in either, defaults attempt to download the latest
+version of the package from the available pacman mirrors, however this only
+works with native packages.'''
+
+argument_parser = argparse.ArgumentParser(description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter)
+argument_parser.add_argument('--editor', metavar='PATH', default=os.getenv('EDITOR', os.getenv('VISUAL')))
 argument_parser.add_argument('--stdout', action='store_true')
 argument_parser.add_argument('path')
 
@@ -73,7 +87,7 @@ def get_pacman_cache_path():
     return config.get('options', 'CacheDir', fallback=DEFAULT_PACMAN_CACHE_PATH)
 
 
-# Very naive, but good enough to get access to PKGEXT and PKGDEST
+# Naive and incomplete, but good enough to get access to most important variables
 def get_makepkg_conf():
     variables = {}
     with open(MAKEPKG_CONF_PATH) as file:
@@ -110,15 +124,15 @@ def main(arguments):
     makepkg_pkgdest = makepkg_conf.get('PKGDEST')
     makepkg_package_glob = os.path.join(glob.escape(makepkg_pkgdest), package_file_name) if makepkg_pkgdest else ''
 
-    # Package doesn't seem to be saved locally, attempt to find the download URL from the current mirrors
     package_paths = glob.glob(pacman_package_glob) or glob.glob(makepkg_package_glob)
     if package_paths:
         package_path = package_paths[0]
     else:
+        # Package doesn't seem to be saved locally, attempt to find the download URL using the current mirrors
         download_url = get_package_download_url(package.name)
         if not download_url:
             argument_parser.exit(
-                EXIT_FAILURE, 'Could not find owning package in the system or determine download URL.\n')
+                EXIT_FAILURE, 'Could not find package on the system or determine download URL.\n')
 
         # Write to stderr so --stdout can be used to pipe binary output directly into a file
         print('Package not found in cache, downloading...', file=sys.stderr)

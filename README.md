@@ -176,28 +176,43 @@ dotfiles and not automatically follow the symlinks. The resulting backup file is
 
 ## defaults
 ```
-$ defaults --help
-usage: defaults [-h] [--editor EDITOR] path
+$ ./defaults --help
+usage: defaults [-h] [--editor PATH] [--stdout] path
+
+Inspect the original version of files belonging to installed packages.
+
+If the editor is not specified using --editor, the environment variables EDIT
+and VISUAL will be used; alternatively --stdout can be used to pipe the original
+file's contents directly to stdout.
+
+Files are searched for in packages located in the "CacheDir" directory specified
+in /etc/pacman.conf (default: /var/cache/pacman/pkg/) and in the "PKGDEST"
+directory specified in /etc/makepkg.conf, if defined. Defaults will only work
+with foreign packages, if the "PKGDEST" directory is specified.
+
+If the package can't be found in either, defaults attempt to download the latest
+version of the package from the available pacman mirrors, however this only
+works with native packages.
 
 positional arguments:
   path
 
 optional arguments:
-  -h, --help       show this help message and exit
-  --editor EDITOR
+  -h, --help     show this help message and exit
+  --editor PATH
+  --stdout
 ```
 
-This is useful for me when editing (configuration/backup) files which are part of installed packages. Often they are
+This is useful for me when editing backup (configuration)-files which are part of installed packages. Often they are
 filled with comments and various examples configurations, however after figuring out my configuration I rarely want to
 keep all these around.
 
 Removing them to keep the file as clean as possible however, might be an issue when further modifications are needed at
-some later point in time -- all the reference examples are now missing, forcing you to either read the man
-page (even for trivial changes) or manually hunting down the package in your cache or online and checking out the
-original file.
+some later point in time -- all the reference examples are now missing, forcing you to either read the man page (even
+for trivial changes) or manually hunt down the package in your cache or online and checking out the original file.
 
-This script aims to save you these steps: simply run it with a path to a file and the local, as well as the original
-file, should both be opened in your configured editor (`EDITOR` or `VISUAL`).
+This script aims to save you these steps: simply run it with a path to a file, and the local, as well as the original
+file, should both be opened in the specified editor.
 
 
 ## hotstrings
