@@ -9,7 +9,7 @@ import systemd.journal
 EXIT_FAILURE = 1
 
 argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('syslog-identifier', dest='syslog_identifier',
+argument_parser.add_argument(dest='syslog_identifier',
                              help='The syslog identifier of the journal that should be monitored.')
 argument_parser.add_argument('gateway', nargs='?', help=('Specify the gateway. If not set, the script will attempt to '
                                                          'determine the default gateway.'))
@@ -32,7 +32,10 @@ def determine_default_gateway():
 
 
 def main(arguments):
-    gateway, output = arguments.gateway or determine_default_gateway()
+    gateway = arguments.gateway
+    if not gateway:
+        gateway, output = determine_default_gateway()
+
     if not gateway:
         argument_parser.exit(EXIT_FAILURE, 'could not determine default gateway:\n%s\n' % output)
 
