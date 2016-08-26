@@ -1,26 +1,30 @@
-pkgname='cryzed-bin'
+pkgname=cryzed-bin
 pkgver=1
 pkgrel=1
-arch=('any')
-url='https://github.com/cryzed/bin'
-license=('MIT')
-depends=('python' 'python-plumbum' 'python-peewee' 'lostfiles' 'systemd' 'networkmanager' 'python-systemd'
-         'python-requests' 'python-beautifulsoup4' 'python-html5lib' 'python-xlib' 'python-tqdm')
-backup=('etc/vpn-whitelist.addresses'
-        'etc/backup-system.conf')
-source=('vpn-whitelist'
-        'vpn-whitelist.'{'addresses','networkmanager-dispatcher'}
-        'warm-up-dns-resolver'
-        'warm-up-dns-resolver.'{'service','timer'}
-        'restart-plasmashell'
-        'backup-system'
-        'backup-system.'{'service','timer','conf'}
-        'systemd-octor'
-        'fix-openvpn'
-        'fix-openvpn@.service'
-        'aur-auto-vote'
-        'defaults'
-        'hotstrings')
+arch=(any)
+url=https://github.com/cryzed/bin
+license=(MIT)
+depends=(python python-plumbum python-peewee lostfiles systemd networkmanager python-systemd
+         python-requests python-beautifulsoup4 python-html5lib python-xlib python-tqdm)
+backup=(etc/vpn-whitelist.addresses
+        etc/backup-system.conf)
+source=(vpn-whitelist
+        vpn-whitelist.addresses
+        vpn-whitelist.networkmanager-dispatcher
+        warm-up-dns-resolver
+        warm-up-dns-resolver.service
+        warm-up-dns-resolver.timer
+        restart-plasmashell
+        backup-system
+        backup-system.service
+        backup-system.timer
+        backup-system.conf
+        systemd-octor
+        fix-openvpn
+        fix-openvpn@.service
+        aur-auto-vote
+        defaults
+        hotstrings)
 md5sums=('50fb0b5720962353618a1cf495910c73'
          'd41d8cd98f00b204e9800998ecf8427e'
          'daee1dc2923f6c73421fee9b06072f88'
@@ -43,36 +47,32 @@ md5sums=('50fb0b5720962353618a1cf495910c73'
 package() {
     # /usr/bin
     usr_bin="$pkgdir/usr/bin"
-    mkdir -p "$usr_bin"
-    cp 'vpn-whitelist' "$usr_bin"
-    cp 'warm-up-dns-resolver' "$usr_bin"
-    cp 'restart-plasmashell' "$usr_bin"
-    cp 'backup-system' "$usr_bin"
-    cp 'systemd-octor' "$usr_bin"
-    cp 'fix-openvpn' "$usr_bin"
-    cp 'aur-auto-vote' "$usr_bin"
-    cp 'defaults' "$usr_bin"
-    cp 'hotstrings' "$usr_bin"
+    install -D --mode 755 vpn-whitelist --target-directory "$usr_bin"
+    install -D --mode 755 warm-up-dns-resolver --target-directory "$usr_bin"
+    install -D --mode 755 restart-plasmashell --target-directory "$usr_bin"
+    install -D --mode 755 backup-system --target-directory "$usr_bin"
+    install -D --mode 755 systemd-octor --target-directory "$usr_bin"
+    install -D --mode 755 fix-openvpn --target-directory "$usr_bin"
+    install -D --mode 755 aur-auto-vote --target-directory "$usr_bin"
+    install -D --mode 755 defaults --target-directory "$usr_bin"
+    install -D --mode 755 hotstrings --target-directory "$usr_bin"
 
     # /etc
     etc="$pkgdir/etc"
-    mkdir -p "$etc"
-    cp 'backup-system.conf' "$etc"
-    cp 'vpn-whitelist.addresses' "$etc"
+    install -D --mode 644 vpn-whitelist.addresses --target-directory "$etc"
+    install -D --mode 644 backup-system.conf --target-directory "$etc"
 
     # /etc/NetworkManager/dispatcher.d
-    etc_networkmanager_dispatcher="$pkgdir/etc/NetworkManager/dispatcher.d"
-    mkdir -p "$etc_networkmanager_dispatcher"
-    cp 'vpn-whitelist.networkmanager-dispatcher' "$etc_networkmanager_dispatcher/vpn-whitelist"
+    install -D --mode 755 vpn-whitelist.networkmanager-dispatcher "$etc/NetworkManager/dispatcher.d/vpn-whitelist"
 
     # /etc/systemd/user
-    etc_systemd_user="$pkgdir/etc/systemd/user"
-    mkdir -p "$etc_systemd_user"
-    cp 'warm-up-dns-resolver.'{'service','timer'} "$etc_systemd_user"
+    etc_systemd_user="$etc/systemd/user"
+    install -D --mode 644 warm-up-dns-resolver.service --target-directory "$etc_systemd_user"
+    install -D --mode 644 warm-up-dns-resolver.timer --target-directory "$etc_systemd_user"
 
     # /etc/systemd/system
-    etc_systemd_system="$pkgdir/etc/systemd/system"
-    mkdir -p "$etc_systemd_system"
-    cp 'fix-openvpn@.service' "$etc_systemd_system"
-    cp 'backup-system.'{'service','timer'} "$etc_systemd_system"
+    etc_systemd_system="$etc/systemd/system"
+    install -D --mode 644 fix-openvpn@.service --target-directory "$etc_systemd_system"
+    install -D --mode 644 backup-system.service --target-directory "$etc_systemd_system"
+    install -D --mode 644 backup-system.timer --target-directory "$etc_systemd_system"
 }
