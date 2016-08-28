@@ -23,7 +23,9 @@ def determine_default_gateway():
         return None, exception.output
 
     for line in output.splitlines():
+        # noinspection PyTypeChecker
         if line.startswith('default via'):
+            # noinspection PyTypeChecker
             return line.split('default via')[1].split(None, 1)[0], output
 
     return None, output

@@ -25,7 +25,7 @@ source=(vpn-whitelist
         aur-auto-vote
         defaults
         hotstrings)
-md5sums=('50fb0b5720962353618a1cf495910c73'
+md5sums=('ee9da778244926085cf8694361028bd7'
          'd41d8cd98f00b204e9800998ecf8427e'
          'daee1dc2923f6c73421fee9b06072f88'
          '9c071c22393d8ba9d1c11021ae08a43c'
@@ -37,7 +37,7 @@ md5sums=('50fb0b5720962353618a1cf495910c73'
          '01b6c960bac9538e620d9dd08991195a'
          '609e76c7a3fd1931085188a3726be480'
          '13769a58d4ca28eb6a9c46b2b195b3ab'
-         'e01decf243bd6ca41aada7f2ade0f9a5'
+         '9e4ee7b61a912c0110360454d1336446'
          '020b54a9c478c2080034c73fa64dbb14'
          '7b44228ad5992350feba9fca27017a5d'
          '1413890025bab242a314279a6f013c3f'
