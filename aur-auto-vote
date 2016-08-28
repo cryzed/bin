@@ -27,8 +27,7 @@ argument_parser.add_argument('--unvote-all', '-u', action='store_true',
 argument_parser.add_argument('--delay', '-d', type=float, default=0, help='Delay between voting actions (seconds).')
 
 Package = collections.namedtuple(
-    'Package', ('name', 'version', 'votes', 'popularity', 'voted', 'notify', 'description', 'maintainer')
-)
+    'Package', ('name', 'version', 'votes', 'popularity', 'voted', 'notify', 'description', 'maintainer'))
 
 
 def login(session, username, password):
@@ -76,7 +75,7 @@ def unvote_package(session, token, package):
 
 
 def main(arguments):
-    password = os.environ.get('AUR_AUTO_VOTE_PASSWORD', None) or input('Password: ')
+    password = os.environ.get('AUR_AUTO_VOTE_PASSWORD') or input('Password: ')
     ignores = tuple(re.compile(r) for r in arguments.ignore)
     session = requests.Session()
     if not login(session, arguments.username, password):
@@ -92,6 +91,7 @@ def main(arguments):
             else:
                 print('failed.')
             time.sleep(arguments.delay)
+
         return
 
     foreign_packages = set(get_foreign_packages())
