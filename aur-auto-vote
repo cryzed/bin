@@ -82,16 +82,14 @@ def main(arguments):
         argument_parser.exit(EXIT_FAILURE, 'Could not login.\n')
 
     token = get_token(session)
-    voted_packages = [p.name for p in sorted(get_voted_packages(session))]
+    voted_packages = tuple(p.name for p in sorted(get_voted_packages(session)))
+
+    # Unvote all packages and return immediately if --unvote-all was passed
     if arguments.unvote_all:
         for package in voted_packages:
             print('Unvoting package: %s... ' % package, end='', flush=True)
-            if unvote_package(session, token, package):
-                print('done.')
-            else:
-                print('failed.')
+            print('done.') if unvote_package(session, token, package) else print('failed.')
             time.sleep(arguments.delay)
-
         return
 
     foreign_packages = set(get_foreign_packages())
@@ -101,10 +99,7 @@ def main(arguments):
             continue
 
         print('Voting for package: %s... ' % package, end='', flush=True)
-        if vote_package(session, token, package):
-            print('done.')
-        else:
-            print('failed.')
+        print('done.') if vote_package(session, token, package) else print('failed.')
         time.sleep(arguments.delay)
 
 
