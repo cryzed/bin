@@ -88,8 +88,12 @@ def main(arguments):
     if arguments.unvote_all:
         for package in voted_packages:
             print('Unvoting package: %s... ' % package, end='', flush=True)
-            print('done.') if unvote_package(session, token, package) else print('failed.')
+            if unvote_package(session, token, package):
+                print('done.')
+            else:
+                print('failed.')
             time.sleep(arguments.delay)
+
         return
 
     foreign_packages = set(get_foreign_packages())
@@ -99,7 +103,10 @@ def main(arguments):
             continue
 
         print('Voting for package: %s... ' % package, end='', flush=True)
-        print('done.') if vote_package(session, token, package) else print('failed.')
+        if vote_package(session, token, package):
+            print('done.')
+        else:
+            print('failed.')
         time.sleep(arguments.delay)
 
 
