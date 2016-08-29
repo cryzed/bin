@@ -23,7 +23,7 @@ argument_parser.add_argument('--days', type=int, default=7,
 database = peewee.SqliteDatabase(None)
 
 
-class Place(peewee.Model):
+class FirefoxPlace(peewee.Model):
     url = peewee.TextField()
     rev_host = peewee.TextField()
     last_visit_date = peewee.IntegerField()
@@ -33,7 +33,7 @@ class Place(peewee.Model):
         db_table = 'moz_places'
 
 
-def get_firefox_domains(days):
+def get_firefox_last_visited_domains(days):
     candidates = glob.glob(os.path.expanduser(MOZILLA_FIREFOX_PLACES_SQLITE_GLOB))
     domains = set()
 
@@ -42,7 +42,7 @@ def get_firefox_domains(days):
         return domains
 
     database.init(candidates[0])
-    query = Place.select().where(Place.last_visit_date).order_by(-Place.last_visit_date)
+    query = FirefoxPlace.select().where(FirefoxPlace.last_visit_date).order_by(-FirefoxPlace.last_visit_date)
 
     # No history found
     latest = query.get()
@@ -86,7 +86,7 @@ def main(arguments):
                 domains = domains.union(get_line_set(file))
 
     if arguments.use_firefox:
-        domains = domains.union(get_firefox_domains(arguments.days))
+        domains = domains.union(get_firefox_last_visited_domains(arguments.days))
 
     print('Warming up DNS cache with %d domains...' % len(domains), end='', flush=True)
     executor = concurrent.futures.ThreadPoolExecutor()

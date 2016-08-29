@@ -28,7 +28,7 @@ source=(vpn-whitelist
 md5sums=('ee9da778244926085cf8694361028bd7'
          'd41d8cd98f00b204e9800998ecf8427e'
          'daee1dc2923f6c73421fee9b06072f88'
-         '9c071c22393d8ba9d1c11021ae08a43c'
+         'ea01f1d156df967321fc766c40b016ee'
          '2a6b37cd45fb5a2c2575f7570940f1dc'
          'cbf72293797013c3e7c1cda4dc5d7155'
          '4e4ad52e9b431121ba2453f73863a42d'
