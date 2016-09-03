@@ -7,6 +7,8 @@ import subprocess
 argument_parser = argparse.ArgumentParser(description='List files installed by a package contained in PATH.')
 argument_parser.add_argument('package')
 
+EXIT_FAILURE = 1
+
 
 def get_command_stdout(*arguments):
     try:
@@ -16,7 +18,11 @@ def get_command_stdout(*arguments):
 
 
 def get_owned_files(name):
-    return [p for p in get_command_stdout('pacman', '-Qlq', name).split() if os.path.isfile(p)]
+    output = get_command_stdout('pacman', '-Qlq', name)
+    if not output:
+        argument_parser.exit(EXIT_FAILURE, 'Could not find package.\n')
+
+    return [p for p in output.split() if os.path.isfile(p)]
 
 
 def main(arguments):
