@@ -24,7 +24,8 @@ source=(vpn-whitelist
         fix-openvpn@.service
         aur-auto-vote
         defaults
-        hotstrings)
+        hotstrings
+        provides)
 md5sums=('ee9da778244926085cf8694361028bd7'
          'd41d8cd98f00b204e9800998ecf8427e'
          'daee1dc2923f6c73421fee9b06072f88'
@@ -41,7 +42,8 @@ md5sums=('ee9da778244926085cf8694361028bd7'
          '020b54a9c478c2080034c73fa64dbb14'
          '7b44228ad5992350feba9fca27017a5d'
          '1413890025bab242a314279a6f013c3f'
-         '785d270baac91af36ad6611994d23579')
+         '785d270baac91af36ad6611994d23579'
+         'ad603f21c06b1a58a592f0d22e509b07')
 
 
 package() {
@@ -56,6 +58,7 @@ package() {
     install -D --mode 755 aur-auto-vote --target-directory "$usr_bin"
     install -D --mode 755 defaults --target-directory "$usr_bin"
     install -D --mode 755 hotstrings --target-directory "$usr_bin"
+    install -D --mode 755 provides --target-directory "$usr_bin"
 
     # /etc
     etc="$pkgdir/etc"

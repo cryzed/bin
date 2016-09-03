@@ -245,3 +245,18 @@ $ cat ~/.config/hotstrings.json
     "second": "replacement 2"
 }
 ```
+
+
+## provides
+```
+$ provides --help
+usage: provides [-h] package
+
+positional arguments:
+  package
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+Small utility to list files installed by a package contained in `PATH`.
