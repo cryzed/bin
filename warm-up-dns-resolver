@@ -5,17 +5,18 @@ import concurrent.futures
 import glob
 import os
 import socket
+import sys
 from datetime import datetime, timedelta
 
 import peewee
-
-MOZILLA_FIREFOX_PLACES_SQLITE_GLOB = '~/.mozilla/firefox/*.default/places.sqlite'
 
 argument_parser = argparse.ArgumentParser()
 argument_parser.add_argument('domains', nargs='*')
 argument_parser.add_argument('--file', dest='paths', metavar='PATH', nargs='+', default=[],
                              help='Paths to files containing domains.')
 argument_parser.add_argument('--use-firefox', action='store_true', help="Use domains in Mozilla Firefox's history.")
+argument_parser.add_argument('--firefox-profile', dest='firefox_profile_path', metavar='PATH',
+                             default='~/.mozilla/firefox/*.default', help='Specify the path to a profile folder.')
 argument_parser.add_argument('--days', type=int, default=7,
                              help='Use domains of history up to n days before the last made entry.')
 
@@ -33,15 +34,15 @@ class FirefoxPlace(peewee.Model):
         db_table = 'moz_places'
 
 
-def get_firefox_last_visited_domains(days):
-    candidates = glob.glob(os.path.expanduser(MOZILLA_FIREFOX_PLACES_SQLITE_GLOB))
+def get_firefox_last_visited_domains(profile_path, days):
     domains = set()
 
-    # Could not determine path to places.sqlite
-    if not len(candidates) == 1:
+    path = os.path.join(profile_path, 'places.sqlite')
+    if not os.path.exists(path):
+        print('Warning: Could not find places.sqlite in Mozilla Firefox profile folder:', path, file=sys.stderr)
         return domains
 
-    database.init(candidates[0])
+    database.init(path)
     query = FirefoxPlace.select().where(FirefoxPlace.last_visit_date).order_by(-FirefoxPlace.last_visit_date)
 
     # No history found
@@ -86,7 +87,12 @@ def main(arguments):
                 domains = domains.union(get_line_set(file))
 
     if arguments.use_firefox:
-        domains = domains.union(get_firefox_last_visited_domains(arguments.days))
+        globs = glob.glob(os.path.expanduser(arguments.firefox_profile_path))
+        if globs:
+            domains = domains.union(get_firefox_last_visited_domains(globs[0], arguments.days))
+        else:
+            print('Warning: Could not find Mozilla Firefox profile folder:', arguments.firefox_profile_path,
+                  file=sys.stderr)
 
     print('Warming up DNS cache with %d domains...' % len(domains), end='', flush=True)
     executor = concurrent.futures.ThreadPoolExecutor()
