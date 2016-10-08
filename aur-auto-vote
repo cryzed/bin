@@ -109,6 +109,17 @@ def main(arguments):
             print('failed.')
         time.sleep(arguments.delay)
 
+    for package in sorted(set(voted_packages).difference(foreign_packages)):
+        if any(i.match(package) for i in ignores):
+            print('Ignoring package:', package)
+            continue
+
+        print('Unvoting for package: %s... ' % package, end='', flush=True)
+        if unvote_package(session, token, package):
+            print('done.')
+        else:
+            print('failed.')
+        time.sleep(arguments.delay)
 
 if __name__ == '__main__':
     arguments = argument_parser.parse_args()
