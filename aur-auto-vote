@@ -74,6 +74,7 @@ def unvote_package(session, token, package):
     return response.status_code == requests.codes.found
 
 
+# TODO: Handle split packages better
 def main(arguments):
     password = os.environ.get('AUR_AUTO_VOTE_PASSWORD') or input('Password: ')
     ignores = tuple(re.compile(r) for r in arguments.ignore)
@@ -97,7 +98,8 @@ def main(arguments):
         return
 
     foreign_packages = set(get_foreign_packages())
-    for package in sorted(foreign_packages.difference(set(voted_packages))):
+    voted_packages = set(voted_packages)
+    for package in sorted(foreign_packages.difference(voted_packages)):
         if any(i.match(package) for i in ignores):
             print('Ignoring package:', package)
             continue
@@ -109,17 +111,16 @@ def main(arguments):
             print('failed.')
         time.sleep(arguments.delay)
 
-    for package in sorted(set(voted_packages).difference(foreign_packages)):
-        if any(i.match(package) for i in ignores):
-            print('Ignoring package:', package)
-            continue
-
-        print('Unvoting for package: %s... ' % package, end='', flush=True)
+    # Unvote packages that are voted for in the AUR but not available on the system anymore, i.e. uninstalled since the
+    # last voting
+    for package in sorted(voted_packages.difference(foreign_packages)):
+        print('Unvoting removed package: %s... ' % package, end='', flush=True)
         if unvote_package(session, token, package):
             print('done.')
         else:
             print('failed.')
         time.sleep(arguments.delay)
+
 
 if __name__ == '__main__':
     arguments = argument_parser.parse_args()
