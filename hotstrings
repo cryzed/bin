@@ -5,6 +5,7 @@ import collections
 import json
 import os
 import signal
+import subprocess
 import sys
 
 import Xlib
@@ -179,14 +180,19 @@ class HotstringProcessor:
         queue_string = ''.join(self.queue)
         backspace = tuple(self.string_to_keycodes(self.BACKSPACE_CHARACTER))
         window = self.connection.get_input_focus().focus
-        for hotstring, replacement in self.hotstrings.items():
+        for hotstring, (action, *arguments) in self.hotstrings.items():
             if not queue_string.endswith(hotstring):
                 continue
 
-            print('Hotstring "%s" detected.' % hotstring)
             # Remove typed hotstring before typing replacement
-            self.type_keycodes(backspace * len(hotstring), window)
-            self.type_keycodes(self.string_to_keycodes(replacement), window)
+            if action == 'replace':
+                replacement = arguments[0]
+                self.type_keycodes(backspace * len(hotstring), window)
+                self.type_keycodes(self.string_to_keycodes(replacement), window)
+            elif action == 'run':
+                # To make use of various shell comforts simply run the command in a shell, for example:
+                #   "hotkey": ["run", "sh", "-c", "touch ~/Desktop/hello_world.txt"]
+                subprocess.Popen(arguments)
             self.queue.clear()
 
 
