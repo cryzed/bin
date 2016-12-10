@@ -236,9 +236,9 @@ doesn't seem to be actively maintained anymore, I wanted to preemptively find an
 eventually stops working entirely on my system.
 
 This pretty much implements only the functionality I actually use: replacing hotstrings and running commands; basically
-you type text and it is either replaced by the given replacement string or a specified command is run. Dependencies are
-Python 3 and the the official python-xlib or [LiuLang's fork](https://github.com/LiuLang/python3-xlib) which is used by
-AutoKey-py3.
+you type text and it is either replaced by the given replacement string or a specified command is run (optionally
+replacing the hotstring with its stdout output). Dependencies are Python 3 and the the official python-xlib or
+[LiuLang's fork](https://github.com/LiuLang/python3-xlib) which is used by AutoKey-py3.
 
 An example configuration file might look like this:
 ```
@@ -246,7 +246,8 @@ $ cat ~/.config/hotstrings.json
 {
     "first": ["replace", "replacement 1"],
     "second": ["replace", "replacement 2"],
-    "third": ["run", "sh", "-c", "touch ~/Desktop/hello_world.txt"]
+    "third": ["run", "sh", "-c", "touch ~/Desktop/hello_world.txt"],
+    "fourth": ["run-replace", "date"]
 }
 ```
 

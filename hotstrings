@@ -55,6 +55,8 @@ argument_parser = argparse.ArgumentParser()
 argument_parser.add_argument('path', metavar='PATH', nargs='?',
                              help='Path to JSON file containing hotstring definitions. Default: %(default)s',
                              default=os.path.join(get_xdg_config_home(), 'hotstrings.json'))
+argument_parser.add_argument('--verbose', '-v', action='store_true')
+arguments = argument_parser.parse_args()
 
 
 class RecordHandler:
@@ -118,6 +120,11 @@ class RecordHandler:
                 self.key_released(event)
 
 
+def verbose(*args, **kwargs):
+    if arguments.verbose:
+        print(*args, **kwargs)
+
+
 class HotstringProcessor:
     BACKSPACE_CHARACTER = '\x08'
 
@@ -155,7 +162,7 @@ class HotstringProcessor:
 
             # TODO: Remap missing characters to available keycodes
             if not keycode:
-                print('No keycode found for: %r.' % character, file=sys.stderr)
+                verbose('No keycode found for: %r.' % character, file=sys.stderr)
                 continue
 
             yield keycode
@@ -193,10 +200,17 @@ class HotstringProcessor:
                 # To make use of various shell comforts simply run the command in a shell, for example:
                 #   "hotkey": ["run", "sh", "-c", "touch ~/Desktop/hello_world.txt"]
                 subprocess.Popen(arguments)
+            elif action == 'run-replace':
+                # The same as "run", but replaces the hotstring with the stdout of the executed process
+                with subprocess.Popen(arguments, stdout=subprocess.PIPE, universal_newlines=True) as process:
+                    stdout = process.stdout.read()
+
+                self.type_keycodes(backspace * len(hotstring), window)
+                self.type_keycodes(self.string_to_keycodes(stdout), window)
             self.queue.clear()
 
 
-def main(arguments):
+def main():
     path = os.path.expanduser(arguments.path)
     if not os.path.exists(path):
         argument_parser.exit(EXIT_FAILURE, path + ': No such file or directory.\n')
@@ -228,10 +242,9 @@ def main(arguments):
     for signal_ in signal.SIGINT, signal.SIGTERM:
         signal.signal(signal_, clean_up)
 
-    print('Listening for hotstrings...')
+    verbose('Listening for hotstrings...')
     record_connection.record_enable_context(record_context, record_handler)
 
 
 if __name__ == '__main__':
-    arguments = argument_parser.parse_args()
-    main(arguments)
+    main()
