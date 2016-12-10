@@ -155,6 +155,7 @@ class HotstringProcessor:
         for character in string_:
             code_point = ord(character)
 
+            # TODO: Take a look at other projects using python-xlib to improve this
             # See Xlib.XK.keysym_to_string
             keycodes = tuple(self.connection.keysym_to_keycodes(code_point) or
                              self.connection.keysym_to_keycodes(0xFF00 | code_point))
@@ -194,19 +195,24 @@ class HotstringProcessor:
             # Remove typed hotstring before typing replacement
             if action == 'replace':
                 replacement = arguments[0]
-                self.type_keycodes(backspace * len(hotstring), window)
-                self.type_keycodes(self.string_to_keycodes(replacement), window)
+            elif action == 'run-replace':
+                # The same as "run", but replaces the hotstring with the stdout of the executed process
+                replacement = None
+                with subprocess.Popen(arguments, stdout=subprocess.PIPE, universal_newlines=True) as process:
+                    replacement = process.stdout.read()
             elif action == 'run':
                 # To make use of various shell comforts simply run the command in a shell, for example:
                 #   "hotkey": ["run", "sh", "-c", "touch ~/Desktop/hello_world.txt"]
                 subprocess.Popen(arguments)
-            elif action == 'run-replace':
-                # The same as "run", but replaces the hotstring with the stdout of the executed process
-                with subprocess.Popen(arguments, stdout=subprocess.PIPE, universal_newlines=True) as process:
-                    stdout = process.stdout.read()
+                continue
+            else:
+                verbose('Unrecognized action: %r.' % action)
+                continue
 
-                self.type_keycodes(backspace * len(hotstring), window)
-                self.type_keycodes(self.string_to_keycodes(stdout), window)
+            # Linefeeds don't seem to be sent by Xlib, so replace them with carriage returns
+            replacement = replacement.replace('\n', '\r')
+            self.type_keycodes(backspace * len(hotstring), window)
+            self.type_keycodes(self.string_to_keycodes(replacement), window)
             self.queue.clear()
 
 
