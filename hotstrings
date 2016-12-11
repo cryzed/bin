@@ -199,6 +199,10 @@ class HotstringProcessor:
                 # The same as "run", but replaces the hotstring with the stdout of the executed process
                 replacement = None
                 with subprocess.Popen(arguments, stdout=subprocess.PIPE, universal_newlines=True) as process:
+                    replacement = process.stdout.read().strip()
+            elif action == 'run-replace-raw':
+                # The same as "run-replace" but doesn't strip whitespace at the ends
+                with subprocess.Popen(arguments, stdout=subprocess.PIPE, universal_newlines=True) as process:
                     replacement = process.stdout.read()
             elif action == 'run':
                 # To make use of various shell comforts simply run the command in a shell, for example:
@@ -209,8 +213,9 @@ class HotstringProcessor:
                 verbose('Unrecognized action: %r.' % action)
                 continue
 
-            # Linefeeds don't seem to be sent by Xlib, so replace them with carriage returns
-            replacement = replacement.replace('\n', '\r')
+            # Linefeeds don't seem to be sent by Xlib, so replace them with carriage returns: normalize \r\n to \r
+            # first, then replace all remaining \n with \r
+            replacement = replacement.replace('\r\n', '\r').replace('\n', '\r')
             self.type_keycodes(backspace * len(hotstring), window)
             self.type_keycodes(self.string_to_keycodes(replacement), window)
             self.queue.clear()

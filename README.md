@@ -247,7 +247,10 @@ $ cat ~/.config/hotstrings.json
     "first": ["replace", "replacement 1"],
     "second": ["replace", "replacement 2"],
     "third": ["run", "sh", "-c", "touch ~/Desktop/hello_world.txt"],
-    "fourth": ["run-replace", "date"]
+    "fourth": ["run-replace", "date"],
+
+    // doesn't strip whitespace at the beginning and end of the output
+    "five": ["run-replace-raw", "date"]
 }
 ```
 
