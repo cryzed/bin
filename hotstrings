@@ -197,7 +197,6 @@ class HotstringProcessor:
                 replacement = arguments[0]
             elif action == 'run-replace':
                 # The same as "run", but replaces the hotstring with the stdout of the executed process
-                replacement = None
                 with subprocess.Popen(arguments, stdout=subprocess.PIPE, universal_newlines=True) as process:
                     replacement = process.stdout.read().strip()
             elif action == 'run-replace-raw':
