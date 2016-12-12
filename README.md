@@ -268,3 +268,26 @@ optional arguments:
 ```
 
 Small utility to list files installed by a package contained in `PATH`.
+
+
+## youtuber
+```
+$ youtuber --help
+usage: youtuber [-h] [--dont-recurse] path
+
+positional arguments:
+  path
+
+optional arguments:
+  -h, --help      show this help message and exit
+  --dont-recurse
+```
+
+Small utility that helps keeping a YouTube video collection up-to-date. The provided path is searched recursively (by
+default) for files ending in ".youtube-dl". These youtube-dl files can contain all arguments that the `youtube-dl`
+executable would accept (separated by spaces, newlines, or both). `youtuber` then downloads all missing files (with a
+nice tqdm-interface) into the directory the youtube-dl-file was found in (unless manually overriden with an absolute
+path with the -o/--output option). This allows specifying different options for all youtube-dl-files.
+
+The `youtube-dl` system- and user-configurations are respected and properly merged with all options specified in the
+youtube-dl-files.

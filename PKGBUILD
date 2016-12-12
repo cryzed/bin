@@ -6,7 +6,7 @@ arch=(any)
 url=https://github.com/cryzed/bin
 license=(MIT)
 depends=(python python-plumbum python-peewee lostfiles systemd networkmanager python-systemd
-         python-requests python-beautifulsoup4 python-html5lib python-xlib python-tqdm)
+         python-requests python-beautifulsoup4 python-html5lib python-xlib python-tqdm youtube-dl)
 backup=(etc/vpn-whitelist.addresses
         etc/backup-system.conf)
 source=(vpn-whitelist
@@ -26,7 +26,8 @@ source=(vpn-whitelist
         aur-auto-vote
         defaults
         hotstrings
-        provides)
+        provides
+        youtuber)
 md5sums=('ee9da778244926085cf8694361028bd7'
          'd41d8cd98f00b204e9800998ecf8427e'
          'daee1dc2923f6c73421fee9b06072f88'
@@ -44,7 +45,8 @@ md5sums=('ee9da778244926085cf8694361028bd7'
          '11fbb58590d1f804050ce7a0548d869a'
          '1413890025bab242a314279a6f013c3f'
          '71e6c5aa7fdfe0b27e49f418eff416e4'
-         'b77a3e0feeff8681845bf53eaf450b0e')
+         'b77a3e0feeff8681845bf53eaf450b0e'
+         'fc558990a1f089ecd06959ae294c6a3f')
 
 
 package() {
@@ -60,6 +62,7 @@ package() {
     install -D --mode 755 defaults --target-directory "$usr_bin"
     install -D --mode 755 hotstrings --target-directory "$usr_bin"
     install -D --mode 755 provides --target-directory "$usr_bin"
+    install -D --mode 755 youtuber --target-directory "$usr_bin"
 
     # /etc
     etc="$pkgdir/etc"
