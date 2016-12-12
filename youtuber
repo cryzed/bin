@@ -122,8 +122,8 @@ def download_youtube_dl_file(path, destination):
             # the list of files to download) and download every entry
             entries = tqdm.tqdm(downloader.process_ie_result(info, download=False)['entries'], dynamic_ncols=True)
             entries_error_logger = ErrorLogger(entries.write)
+            downloader.params['logger'] = entries_error_logger
             for entry in entries:
-                downloader.params['logger'] = entries_error_logger
                 entries.set_description(entry['title'])
                 entries.refresh()
                 downloader.process_ie_result(entry)
