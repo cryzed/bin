@@ -84,7 +84,6 @@ def make_download_progress_hook():
                                      unit='B', desc=os.path.basename(data['filename']), dynamic_ncols=True)
             context[path] = progress_bar
             return
-
         progress_bar.update(data['downloaded_bytes'] - progress_bar.n)
 
     return download_progress_hook
@@ -126,7 +125,11 @@ def download_youtube_dl_file(path, destination):
             for entry in entries:
                 entries.set_description(entry['title'])
                 entries.refresh()
-                downloader.process_ie_result(entry)
+
+                try:
+                    downloader.process_ie_result(entry)
+                except youtube_dl.utils.DownloadError as exception:
+                    entries.write('Download error for: %s (%s)' % (entry['title'], str(exception)))
 
 
 def main():
