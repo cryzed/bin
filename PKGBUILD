@@ -27,7 +27,8 @@ source=(vpn-whitelist
         defaults
         hotstrings
         provides
-        youtuber)
+        youtuber
+        kde-bitday)
 md5sums=('ee9da778244926085cf8694361028bd7'
          'd41d8cd98f00b204e9800998ecf8427e'
          'daee1dc2923f6c73421fee9b06072f88'
@@ -40,13 +41,14 @@ md5sums=('ee9da778244926085cf8694361028bd7'
          '01b6c960bac9538e620d9dd08991195a'
          '609e76c7a3fd1931085188a3726be480'
          '13769a58d4ca28eb6a9c46b2b195b3ab'
-         '69393a89d3a8bab39f50711da225f4d3'
+         '0a12bff48d9b16a7d00f92196bd52bb1'
          '020b54a9c478c2080034c73fa64dbb14'
          '11fbb58590d1f804050ce7a0548d869a'
          '1413890025bab242a314279a6f013c3f'
          '71e6c5aa7fdfe0b27e49f418eff416e4'
          'b77a3e0feeff8681845bf53eaf450b0e'
-         '1a67779fd2891b5958b922f4acdec1cb')
+         '1a67779fd2891b5958b922f4acdec1cb'
+         '3412e0beb69b894f7b716c81ab06892e')
 
 
 package() {
@@ -63,6 +65,7 @@ package() {
     install -D --mode 755 hotstrings --target-directory "$usr_bin"
     install -D --mode 755 provides --target-directory "$usr_bin"
     install -D --mode 755 youtuber --target-directory "$usr_bin"
+    install -D --mode 755 kde-bitday --target-directory "$usr_bin"
 
     # /etc
     etc="$pkgdir/etc"

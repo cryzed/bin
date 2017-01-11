@@ -291,3 +291,20 @@ path with the -o/--output option). This allows specifying different options for 
 
 The `youtube-dl` system- and user-configurations are respected and properly merged with all options specified in the
 youtube-dl-files.
+
+
+## kde-bitday
+KDE Plasma-compatible wallpaper changer script for the [Bitday wallpaper set](http://danny.care/bitday/download/). Note:
+Do not put any files into the target directory, they will be deleted!
+
+```
+$ bitday --help
+usage: bitday [-h] [--source SOURCE] target
+
+positional arguments:
+  target           Path to the KDE Slideshow wallpaper folder
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --source SOURCE  Path to a folder containing a BitDay 2 wallpaper set
+```
