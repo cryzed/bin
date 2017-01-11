@@ -73,7 +73,7 @@ def main():
         change_wallpaper()
 
         now = datetime.now()
-        seconds_to_next_hour = (59 - now.minute) * 60 + 59 - now.second
+        seconds_to_next_hour = (59 - now.minute) * 60 + 60 - now.second
 
         # I hate off-by-one errors
         time.sleep(seconds_to_next_hour + 1)
