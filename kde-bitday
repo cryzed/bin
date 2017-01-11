@@ -44,8 +44,6 @@ def change_wallpaper():
     if old_wallpaper_filename == wallpaper_filename:
         return
 
-    wallpaper_path = os.path.join(arguments.source, wallpaper_filename)
-
     # Clean out left over files from the slideshow directory
     for path in [os.path.join(arguments.target, filename) for filename in os.listdir(arguments.target)]:
         # Avoid any kind of racing conditions between checking for file existence and removing it
@@ -54,6 +52,7 @@ def change_wallpaper():
         except FileNotFoundError:
             pass
 
+    wallpaper_path = os.path.join(arguments.source, wallpaper_filename)
     shutil.copy(wallpaper_path, arguments.target)
 
 
