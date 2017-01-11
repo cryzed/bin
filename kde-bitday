@@ -45,7 +45,11 @@ def change_wallpaper():
         return
 
     # Clean out left over files from the slideshow directory
-    for path in [os.path.join(arguments.target, filename) for filename in os.listdir(arguments.target)]:
+    for name in os.listdir(arguments.target):
+        path = os.path.join(arguments.target, name)
+        if name not in WALLPAPERS:
+            argument_parser.exit(1, f'Slideshow folder contains file that does not belong to BitDay ({path}).\n')
+
         # Avoid any kind of racing conditions between checking for file existence and removing it
         try:
             os.remove(path)
