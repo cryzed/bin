@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import argparse
-import math
 import os
 import shutil
 import time
@@ -74,7 +73,7 @@ def main():
     while True:
         now = datetime.now()
 
-        normalized_hour = math.ceil((now.hour - sunrise_offset) % 24)
+        normalized_hour = int(now.hour - sunrise_offset) % 24
         change_wallpaper(normalized_hour)
 
         # I hate off-by-one errors
