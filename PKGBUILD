@@ -1,5 +1,5 @@
 #@IgnoreInspection BashAddShebang
-pkgname=cryzed-bin
+pkgname=local-bin
 pkgver=1
 pkgrel=1
 arch=(any)
@@ -36,7 +36,7 @@ md5sums=('ee9da778244926085cf8694361028bd7'
          '2a6b37cd45fb5a2c2575f7570940f1dc'
          'cbf72293797013c3e7c1cda4dc5d7155'
          '4e4ad52e9b431121ba2453f73863a42d'
-         'f5096c603ce533fe31e5093ac7e3541d'
+         'a4545c3c037b42a9d297965a84a8ff48'
          'f93789f6e9ceea3c6e512f6c40ea16e7'
          '01b6c960bac9538e620d9dd08991195a'
          '609e76c7a3fd1931085188a3726be480'
