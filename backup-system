@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import argparse
+import itertools
 import os
 import pwd
 import re
@@ -9,8 +11,10 @@ from datetime import datetime
 from plumbum import local
 from plumbum.cmd import pacman, awk, tar, lostfiles
 
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('--destination', default=os.getcwd())
+
 BLACKLIST = (
-    re.compile(re.escape('/etc/fonts')),
     re.compile(re.escape('/etc/gconf')),
     re.compile(re.escape('/etc/gtk-2.0')),
     re.compile(re.escape('/opt')),
@@ -22,10 +26,22 @@ PACMAN_EXPLICITLY_INSTALLED_PACKAGES_FILE_NAME = 'pacman-explicitly-installed-pa
 SYSTEMD_OCTOR_FILE_NAME = 'systemd-unit-files.json'
 
 
-def get_all_file_paths(path):
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            yield os.path.join(root, file)
+def find_paths(path, predicate=lambda path: True, recursive=True, follow_symlinks=True):
+    """
+    Yields absolute paths in path that fulfill the predicate.
+
+    If recursive is True all paths below path will be traversed. If follow_symlinks is True symbolic links will be
+    followed.
+    """
+
+    for root, directories, filenames in os.walk(path, followlinks=follow_symlinks):
+        for name in itertools.chain(directories, filenames, (root,)):
+            path = os.path.join(root, name)
+            if predicate(path):
+                yield path
+
+        if not recursive:
+            break
 
 
 def get_explicitly_installed_packages():
@@ -42,24 +58,20 @@ def get_lost_files_paths():
     return [l for l in lostfiles('strict').splitlines() if l.strip()]
 
 
-def get_systemd_overrides():
-    paths = []
-    for target in '/etc/systemd/system', '/etc/systemd/user':
-        for item in (i for i in os.listdir(target) if i.endswith('.d')):
-            paths.extend(get_all_file_paths(os.path.join(target, item)))
-
-    return paths
-
-
 def blacklisted(path):
     return any(entry.match(path) for entry in BLACKLIST)
 
 
-def main(destination=os.getcwd()):
+def is_dotfile(path):
+    return os.path.basename(path).startswith('.')
+
+
+def main(arguments):
     uid = os.getuid()
     if not uid == 0:
         print('This script must be run as root!', file=sys.stderr)
         return 1
+
     root = pwd.getpwuid(uid)
 
     # Write list of explicitly installed packages
@@ -73,21 +85,26 @@ def main(destination=os.getcwd()):
     local['systemd-octor']('--destination', path)
     remove.append(path)
 
-    backup_paths = list(p for p in get_modified_backup_files_paths() if os.path.isfile(p) and not blacklisted(p))
-    backup_paths.extend(p for p in get_lost_files_paths() if os.path.isfile(p) and not blacklisted(p))
-    backup_paths.extend(p for p in get_systemd_overrides() if not blacklisted(p))
+    backup_paths = [p for p in get_modified_backup_files_paths() if os.path.isfile(p) and not blacklisted(p)]
+    backup_paths.extend([p for p in get_lost_files_paths() if os.path.isfile(p) and not blacklisted(p)])
     backup_paths.append(root.pw_dir)
 
-    # TODO: Find all interative users and use pw_dirs explicitly?
-    backup_paths.append('/home')
+    # TODO: Find all interactive users and use pw_dirs explicitly?
+    # Only backup dotfiles for all users
+    user_homes = os.listdir('/home')
+    for user_home in user_homes:
+        dotfile_paths = find_paths(os.path.join('/home', user_home), is_dotfile, recursive=False)
+        backup_paths.extend(dotfile_paths)
 
-    output_path = os.path.join(destination, OUTPUT_FILE_NAME)
+    output_path = os.path.join(arguments.destination, OUTPUT_FILE_NAME)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     tar('--create', '--auto-compress', '--directory', '/', '--file', output_path, *backup_paths, retcode=(0, 1))
 
+    # Remove temporary files
     for path in remove:
         os.remove(path)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1]) if len(sys.argv) > 1 else main()
+    arguments = argument_parser.parse_args()
+    main(arguments)

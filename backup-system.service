@@ -3,7 +3,7 @@ Description=Backup System
 
 [Service]
 EnvironmentFile=/etc/backup-system.conf
-ExecStart=/usr/bin/backup-system $DIRECTORY
+ExecStart=/usr/bin/backup-system --destination $DESTINATION
 
 [Install]
 WantedBy=multi-user.target
