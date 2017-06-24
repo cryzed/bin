@@ -2,8 +2,9 @@
 Description=Backup System
 
 [Service]
+Type=oneshot
 EnvironmentFile=/etc/backup-system.conf
-ExecStart=/usr/bin/backup-system --destination $DESTINATION
+#ExecStart=/usr/bin/borg create ${BORG_REPOSITORY}::root-{now:%%d-%%m-%%Y} --verbose --stats --exclude-caches --keep-tag-files --one-file-system --compression zlib /
 
 [Install]
 WantedBy=multi-user.target
