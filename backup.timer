@@ -1,5 +1,5 @@
 [Unit]
-Description=Backup System daily
+Description=Backup daily
 
 [Timer]
 OnCalendar=daily

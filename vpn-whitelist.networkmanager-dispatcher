@@ -3,7 +3,7 @@
 import subprocess
 import sys
 
-COMMAND = 'vpn-whitelist',
+COMMAND = ['vpn-whitelist']
 
 
 def main(interface, action):
@@ -14,7 +14,7 @@ def main(interface, action):
     if action == 'up':
         subprocess.run(COMMAND)
     elif action == 'down':
-        subprocess.run(COMMAND + ('--remove',))
+        subprocess.run(COMMAND + ['--remove'])
 
 
 if __name__ == '__main__':
