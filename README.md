@@ -141,7 +141,14 @@ Switches
 ```
 
 
-## backup-system
+## backup
 These are some small systemd service skeletons that use borg and environment variables in `/etc/backup-system.conf` to
 allow daily system backups. To customize the service run `# systemctl edit backup-system` and modify the
 `[Service]`-section accordingly.
+
+
+## smartd-*
+Plugins for `smartd` from `smartmontools`:
+  * `wall`: Notifies all users on the system of the S.M.A.R.T. failure using `wall`.
+  * `create-super-users-desktop-file`: Creates a file in all super-users' (except root) Desktop folder containing the
+  S.M.A.R.T. failure

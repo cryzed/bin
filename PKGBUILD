@@ -5,7 +5,8 @@ arch=('any')
 url='https://github.com/cryzed/bin'
 license=('MIT')
 depends=('python' 'networkmanager' 'python-requests' 'python-beautifulsoup4'
-         'python-html5lib' 'python-xlib' 'python-tqdm' 'borg')
+         'python-html5lib' 'python-xlib' 'python-tqdm' 'borg' 'smartmontools'
+         'python-plumbum')
 backup=('etc/vpn-whitelist.addresses'
         'etc/backup.conf')
 source=('vpn-whitelist'
@@ -17,7 +18,9 @@ source=('vpn-whitelist'
         'backup.conf'
         'aur-auto-vote'
         'defaults'
-        'hotstrings')
+        'hotstrings'
+        'smartd-create-super-users-desktop-file'
+        'smartd-wall')
 md5sums=('ee9da778244926085cf8694361028bd7'
          'd41d8cd98f00b204e9800998ecf8427e'
          '821993dc77ce23f25e0de9162a447664'
@@ -27,7 +30,9 @@ md5sums=('ee9da778244926085cf8694361028bd7'
          'eb1bde0663e0a4fb89e36a54b4ca63c3'
          '11fbb58590d1f804050ce7a0548d869a'
          '1413890025bab242a314279a6f013c3f'
-         '71e6c5aa7fdfe0b27e49f418eff416e4')
+         '71e6c5aa7fdfe0b27e49f418eff416e4'
+         '9d88f20f56b8f8fda279737b2839cb04'
+         'cedc139256ef95bffe303eff9f284ac8')
 
 
 package() {
@@ -51,4 +56,9 @@ package() {
     etc_systemd_system="$etc/systemd/system"
     install -D --mode 644 'backup.service' --target-directory "$etc_systemd_system"
     install -D --mode 644 'backup.timer' --target-directory "$etc_systemd_system"
+
+    # /usr/share/smartmontools/smartd_warning.d/
+    smartd_warning_d="$pkgdir/usr/share/smartmontools/smartd_warning.d"
+    install -D --mode 755 'smartd-create-super-users-desktop-file' "$smartd_warning_d/create-super-users-desktop-file"
+    install -D --mode 755 'smartd-wall' "$smartd_warning_d/wall"
 }
