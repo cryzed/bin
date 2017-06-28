@@ -6,7 +6,7 @@ url='https://github.com/cryzed/bin'
 license=('MIT')
 depends=('python' 'networkmanager' 'python-requests' 'python-beautifulsoup4'
          'python-html5lib' 'python-xlib' 'python-tqdm' 'borg' 'smartmontools'
-         'python-plumbum')
+         'python-plumbum' 'unbound')
 backup=('etc/vpn-whitelist.addresses'
         'etc/backup.conf')
 source=('vpn-whitelist'
@@ -20,7 +20,9 @@ source=('vpn-whitelist'
         'defaults'
         'hotstrings'
         'smartd-create-super-users-desktop-file'
-        'smartd-wall')
+        'smartd-wall'
+        'update-unbound-root-hints.timer'
+        'update-unbound-root-hints.service')
 md5sums=('ee9da778244926085cf8694361028bd7'
          'd41d8cd98f00b204e9800998ecf8427e'
          '821993dc77ce23f25e0de9162a447664'
@@ -32,7 +34,9 @@ md5sums=('ee9da778244926085cf8694361028bd7'
          '1413890025bab242a314279a6f013c3f'
          '71e6c5aa7fdfe0b27e49f418eff416e4'
          '9d88f20f56b8f8fda279737b2839cb04'
-         'cedc139256ef95bffe303eff9f284ac8')
+         'cedc139256ef95bffe303eff9f284ac8'
+         '7c7a594f8d1a31b3708226fbf8c0fea1'
+         '44727f221685187f0db5333e80264cee')
 
 
 package() {
@@ -56,6 +60,8 @@ package() {
     etc_systemd_system="$etc/systemd/system"
     install -D --mode 644 'backup.service' --target-directory "$etc_systemd_system"
     install -D --mode 644 'backup.timer' --target-directory "$etc_systemd_system"
+    install -D --mode 644 'update-unbound-root-hints.service' --target-directory "$etc_systemd_system"
+    install -D --mode 644 'update-unbound-root-hints.timer' --target-directory "$etc_systemd_system"
 
     # /usr/share/smartmontools/smartd_warning.d/
     smartd_warning_d="$pkgdir/usr/share/smartmontools/smartd_warning.d"
