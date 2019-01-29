@@ -47,7 +47,7 @@ def get_voted_packages(session):
         response = session.get(SEARCH_URL_TEMPLATE % offset)
         soup = bs4.BeautifulSoup(response.text, 'html5lib')
         for row in soup.select('.results > tbody > tr'):
-            package = Package(*(c.get_text(strip=True) for c in row.select('> td')[1:]))
+            package = Package(*(c.get_text(strip=True) for c in row.select(':scope > td')[1:]))
             if not package.voted:
                 return
 
