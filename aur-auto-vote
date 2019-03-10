@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import time
+import getpass
 
 import bs4
 import requests
@@ -76,7 +77,7 @@ def unvote_package(session, token, package):
 
 # TODO: Handle split packages better
 def main(arguments):
-    password = os.environ.get('AUR_AUTO_VOTE_PASSWORD') or input('Password: ')
+    password = os.environ.get('AUR_AUTO_VOTE_PASSWORD') or getpass.getpass('Password: ')
     ignores = tuple(re.compile(r) for r in arguments.ignore)
     session = requests.Session()
     if not login(session, arguments.username, password):
