@@ -1,9 +1,0 @@
-[Unit]
-Description=Update Unbound root hints monthly
-
-[Timer]
-OnCalendar=monthly
-Persistent=true     
-
-[Install]
-WantedBy=timers.target
