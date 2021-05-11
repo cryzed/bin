@@ -3,6 +3,7 @@
 import argparse
 import collections
 import json
+import logging
 import os
 import signal
 import subprocess
@@ -37,6 +38,64 @@ Xlib.XK.load_keysym_group('xkb')
 event_field = Xlib.protocol.rq.EventField(None)
 
 
+def main():
+    argument_parser = argparse.ArgumentParser()
+    argument_parser.add_argument(
+        'path', metavar='PATH', nargs='?',
+        help='Path to JSON file containing hotstring definitions. '
+             'Default: %(default)s',
+        default=os.path.join(get_xdg_config_home(), 'hotstrings.json'))
+    argument_parser.add_argument('--verbose', '-v', action='store_true')
+    arguments = argument_parser.parse_args()
+
+    if arguments.verbose:
+        logging.basicConfig(level=logging.INFO)
+
+    path = os.path.expanduser(arguments.path)
+    if not os.path.exists(path):
+        argument_parser.exit(EXIT_FAILURE,
+                             path + ': No such file or directory.\n')
+
+    connection = Xlib.display.Display()
+    record_connection = Xlib.display.Display()
+
+    if not record_connection.has_extension('RECORD'):
+        argument_parser.exit(EXIT_FAILURE,
+                             'X Record Extension Library not found.\n')
+
+    with open(path) as file:
+        hotstrings = json.load(file)
+
+    if not hotstrings:
+        argument_parser.exit(EXIT_FAILURE, 'No hotstrings defined.\n')
+
+    record_context = record_connection.record_create_context(
+        *RECORD_CONTEXT_ARGUMENTS)
+
+    # Only keep at maximum the amount of characters of the longest hotstring
+    # in the HotstringProcessor queue
+    hotstring_processor = HotstringProcessor(
+        hotstrings,
+        connection,
+        max(len(k) for k in hotstrings.keys())
+    )
+    record_handler = RecordHandler(connection, record_connection,
+                                   hotstring_processor)
+
+    def clean_up(*args):
+        record_connection.record_free_context(record_context)
+        record_connection.close()
+        connection.close()
+        argument_parser.exit()
+
+    # Make sure to free structs and close connections
+    for signal_ in signal.SIGINT, signal.SIGTERM:
+        signal.signal(signal_, clean_up)
+
+    logging.info('Listening for hotstrings...')
+    record_connection.record_enable_context(record_context, record_handler)
+
+
 def parse_event_fields(data, display):
     while data:
         event, data = event_field.parse_binary_value(data, display, None, None)
@@ -49,14 +108,6 @@ def get_xdg_config_home():
         return xdg_config_home
 
     return os.path.expanduser('~/.config')
-
-
-argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('path', metavar='PATH', nargs='?',
-                             help='Path to JSON file containing hotstring definitions. Default: %(default)s',
-                             default=os.path.join(get_xdg_config_home(), 'hotstrings.json'))
-argument_parser.add_argument('--verbose', '-v', action='store_true')
-arguments = argument_parser.parse_args()
 
 
 class RecordHandler:
@@ -120,11 +171,6 @@ class RecordHandler:
                 self.key_released(event)
 
 
-def verbose(*args, **kwargs):
-    if arguments.verbose:
-        print(*args, **kwargs)
-
-
 class HotstringProcessor:
     BACKSPACE_CHARACTER = '\x08'
 
@@ -163,7 +209,7 @@ class HotstringProcessor:
 
             # TODO: Remap missing characters to available keycodes
             if not keycode:
-                verbose('No keycode found for: %r.' % character, file=sys.stderr)
+                logging.info('No keycode found for: %r.' % character, file=sys.stderr)
                 continue
 
             yield keycode
@@ -209,7 +255,7 @@ class HotstringProcessor:
                 subprocess.Popen(arguments)
                 continue
             else:
-                verbose('Unrecognized action: %r.' % action)
+                logging.info('Unrecognized action: %r.' % action)
                 continue
 
             # Linefeeds don't seem to be sent by Xlib, so replace them with carriage returns: normalize \r\n to \r
@@ -218,42 +264,6 @@ class HotstringProcessor:
             self.type_keycodes(backspace * len(hotstring), window)
             self.type_keycodes(self.string_to_keycodes(replacement), window)
             self.queue.clear()
-
-
-def main():
-    path = os.path.expanduser(arguments.path)
-    if not os.path.exists(path):
-        argument_parser.exit(EXIT_FAILURE, path + ': No such file or directory.\n')
-
-    connection = Xlib.display.Display()
-    record_connection = Xlib.display.Display()
-
-    if not record_connection.has_extension('RECORD'):
-        argument_parser.exit(EXIT_FAILURE, 'X Record Extension Library not found.\n')
-
-    with open(path) as file:
-        hotstrings = json.load(file)
-
-    if not hotstrings:
-        argument_parser.exit(EXIT_FAILURE, 'No hotstrings defined.\n')
-
-    record_context = record_connection.record_create_context(*RECORD_CONTEXT_ARGUMENTS)
-    # Only keep at maximum the amount of characters of the longest hotstring in the HotstringProcessor queue
-    hotstring_processor = HotstringProcessor(hotstrings, connection, max(len(k) for k in hotstrings.keys()))
-    record_handler = RecordHandler(connection, record_connection, hotstring_processor)
-
-    def clean_up(*args):
-        record_connection.record_free_context(record_context)
-        record_connection.close()
-        connection.close()
-        argument_parser.exit()
-
-    # Make sure to free structs and close connections
-    for signal_ in signal.SIGINT, signal.SIGTERM:
-        signal.signal(signal_, clean_up)
-
-    verbose('Listening for hotstrings...')
-    record_connection.record_enable_context(record_context, record_handler)
 
 
 if __name__ == '__main__':
