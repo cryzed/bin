@@ -25,7 +25,7 @@ argument_parser.add_argument('--ignore', '-i', action='append', default=[],
                              help='Regex for packages that should not be voted. Can be passed multiple times.')
 argument_parser.add_argument('--unvote-all', '-u', action='store_true',
                              help='Unvote all voted-for packages, all other arguments are ignored.')
-argument_parser.add_argument('--no-unvote', '-n', action="store_true", help="Don't unvote uninstalled packages")
+argument_parser.add_argument('--no-unvote', '-n', action="store_true", help="Don't unvote uninstalled packages.")
 argument_parser.add_argument('--delay', '-d', type=float, default=0, help='Delay between voting actions (seconds).')
 
 Package = collections.namedtuple(
