@@ -33,9 +33,9 @@ Package = collections.namedtuple(
 
 
 def login(session, username, password):
-    response = session.post(LOGIN_URL, {'user': username, 'passwd': password})
+    response = session.post(LOGIN_URL, {'user': username, 'passwd': password, 'next': '/'}, headers={'referer': 'https://aur.archlinux.org/login'})
     soup = bs4.BeautifulSoup(response.text, 'html5lib')
-    return bool(soup.select_one('#archdev-navbar').find('a', href=lambda h: h and h.rstrip('/').endswith('/logout')))
+    return bool(soup.select_one('#archdev-navbar').find('form', action=lambda h: h and h.rstrip('/').endswith('/logout')))
 
 
 def get_foreign_packages():
@@ -58,22 +58,16 @@ def get_voted_packages(session):
         offset += PACKAGES_PER_PAGE
 
 
-def get_token(session):
-    response = session.get(PACKAGES_URL)
-    soup = bs4.BeautifulSoup(response.text, 'html5lib')
-    return soup.select_one('input[name=token]')['value']
+def vote_package(session, package):
+    response = session.post(VOTE_URL_TEMPLATE % package, {'do_Vote': 'Vote for this package'},
+                            allow_redirects=True)                          
+    return response.status_code == requests.codes.ok
 
 
-def vote_package(session, token, package):
-    response = session.post(VOTE_URL_TEMPLATE % package, {'token': token, 'do_Vote': 'Vote for this package'},
-                            allow_redirects=False)
-    return response.status_code == requests.codes.found
-
-
-def unvote_package(session, token, package):
-    response = session.post(UNVOTE_URL_TEMPLATE % package, {'token': token, 'do_UnVote': 'Remove vote'},
-                            allow_redirects=False)
-    return response.status_code == requests.codes.found
+def unvote_package(session, package):
+    response = session.post(UNVOTE_URL_TEMPLATE % package, {'do_UnVote': 'Remove vote'},
+                            allow_redirects=True)
+    return response.status_code == requests.codes.ok
 
 
 # TODO: Handle split packages better
@@ -84,14 +78,13 @@ def main(arguments):
     if not login(session, arguments.username, password):
         argument_parser.exit(EXIT_FAILURE, 'Could not login.\n')
 
-    token = get_token(session)
     voted_packages = tuple(p.name for p in sorted(get_voted_packages(session)))
 
     # Unvote all packages and return immediately if --unvote-all was passed
     if arguments.unvote_all:
         for package in voted_packages:
             print('Unvoting package: %s... ' % package, end='', flush=True)
-            if unvote_package(session, token, package):
+            if unvote_package(session, package):
                 print('done.')
             else:
                 print('failed.')
@@ -107,7 +100,7 @@ def main(arguments):
             continue
 
         print('Voting for package: %s... ' % package, end='', flush=True)
-        if vote_package(session, token, package):
+        if vote_package(session, package):
             print('done.')
         else:
             print('failed.')
@@ -120,7 +113,7 @@ def main(arguments):
 
     for package in sorted(voted_packages.difference(foreign_packages)):
         print('Unvoting removed package: %s... ' % package, end='', flush=True)
-        if unvote_package(session, token, package):
+        if unvote_package(session, package):
             print('done.')
         else:
             print('failed.')
