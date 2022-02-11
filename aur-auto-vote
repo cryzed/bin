@@ -96,7 +96,7 @@ def main(arguments):
     voted_packages = set(voted_packages)
     for package in sorted(foreign_packages.difference(voted_packages)):
         if any(i.match(package) for i in ignores):
-            print('Ignoring package:', package)
+            print('Not voting for ignored package:', package)
             continue
 
         print('Voting for package: %s... ' % package, end='', flush=True)
@@ -112,6 +112,10 @@ def main(arguments):
         return
 
     for package in sorted(voted_packages.difference(foreign_packages)):
+        if any(i.match(package) for i in ignores):
+            print('Not unvoting ignored package:', package)
+            continue
+
         print('Unvoting removed package: %s... ' % package, end='', flush=True)
         if unvote_package(session, package):
             print('done.')
