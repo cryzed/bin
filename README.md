@@ -10,19 +10,17 @@ of voted-for packages up-to-date manually.
 
 ```
 $ aur-auto-vote --help
-usage: aur-auto-vote [-h] [--ignore IGNORE] [--unvote-all] [--delay DELAY]
-                     username
+usage: aur-auto-vote [-h] [--ignore IGNORE] [--unvote-all] [--no-unvote] [--delay DELAY] username
 
 positional arguments:
   username
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --ignore IGNORE, -i IGNORE
-                        Regex for packages that should not be voted. Can be
-                        passed multiple times.
-  --unvote-all, -u      Unvote all voted-for packages, all other arguments are
-                        ignored.
+                        Regex for packages that should not be voted. Can be passed multiple times.
+  --unvote-all, -u      Unvote all voted-for packages, all other arguments are ignored.
+  --no-unvote, -n       Don't unvote uninstalled packages.
   --delay DELAY, -d DELAY
                         Delay between voting actions (seconds).
 ```
