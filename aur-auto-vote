@@ -29,7 +29,7 @@ argument_parser.add_argument('--no-unvote', '-n', action="store_true", help="Don
 argument_parser.add_argument('--delay', '-d', type=float, default=0, help='Delay between voting actions (seconds).')
 
 Package = collections.namedtuple(
-    'Package', ('name', 'version', 'votes', 'popularity', 'voted', 'notify', 'description', 'maintainer'))
+    'Package', ('name', 'version', 'votes', 'popularity', 'voted', 'notify', 'description', 'maintainer', 'updated'))
 
 
 def login(session, username, password):
